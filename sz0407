@@ -10,54 +10,33 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
-        
-        :root {
-            --esun-green: #006D41;
-            --esun-gold: #D4AF37;
-            --bg-light: #f4f7f5;
-        }
-
+        :root { --esun-green: #006D41; --esun-gold: #D4AF37; --bg-light: #f4f7f5; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-light); color: #1a1a1a; }
-        
-        /* 企業色系定義 */
         .esun-bg-green { background-color: var(--esun-green); }
         .esun-text-green { color: var(--esun-green); }
         .esun-bg-gold { background-color: var(--esun-gold); }
         .esun-text-gold { color: var(--esun-gold); }
         .esun-border-green { border-color: var(--esun-green); }
-        .esun-border-gold { border-color: var(--esun-gold); }
-
         .slide-in { animation: slideIn 0.4s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .loading-dot { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        
         .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -10px rgba(0, 109, 65, 0.2); }
-        
-        .quiz-btn { transition: all 0.2s; }
         .quiz-btn:active { transform: scale(0.97); }
-
-        /* 自定義捲軸 */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: var(--esun-green); border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <!-- 系統配置 (隱藏) -->
     <script>
-        // 行長，請在此處填入您的 DeepSeek API Key
-        // 這邊建議透過 Cloudflare 環境變數傳遞，目前先預留接口
+        // 核心密鑰與接口
         const DEEPSEEK_API_KEY = "sk-6b982e0502244ac1ae9ef3ee8fce7178"; 
         const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
-        
-        // 雲端資料庫接口 (對接您的 Cloudflare Worker URL)
-        const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev/"; 
+        const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev"; 
 
-        // 全域狀態
+        // 全域狀態管理
         window.currentCategory = "TMU";
         window.currentView = 'home';
         window.allExams = []; 
@@ -68,12 +47,11 @@
         window.uploadedImages = [];
     </script>
 
-    <!-- 頂部導航 -->
     <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 esun-bg-green rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg border-b-2 border-[#D4AF37]">智庫</div>
             <div>
-                <h1 class="font-bold text-gray-800 text-lg leading-tight tracking-tight">企業智慧學習平台</h1>
+                <h1 class="font-bold text-gray-800 text-lg leading-tight">企業智慧學習平台</h1>
                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">China Direct Access Edition</p>
             </div>
         </div>
@@ -83,533 +61,376 @@
         </div>
     </nav>
 
-    <!-- ========================================== -->
-    <!-- 1. 學員模式 -->
-    <!-- ========================================== -->
     <div id="learnerSection" class="max-w-4xl mx-auto p-4 py-8 slide-in">
-        
-        <!-- A. 類別選擇 -->
         <div id="learnerHome" class="space-y-10">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-bold text-gray-800 tracking-tight">專業知識地圖</h2>
                 <div class="w-16 h-1 esun-bg-gold mx-auto rounded-full"></div>
                 <p class="text-gray-500 text-sm italic font-medium">數據已實現大陸境內直連同步</p>
             </div>
-            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div onclick="window.onSelectCategory('TMU')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 esun-border-green text-center cursor-pointer shadow-sm">
                     <div class="text-5xl mb-4">📈</div><h3 class="font-bold text-gray-700 text-lg">TMU</h3>
-                    <p class="text-[10px] text-gray-400 uppercase mt-1 font-bold">Treasury</p>
                 </div>
                 <div onclick="window.onSelectCategory('存匯')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-blue-600 text-center cursor-pointer shadow-sm">
                     <div class="text-5xl mb-4">💰</div><h3 class="font-bold text-gray-700 text-lg">存匯</h3>
-                    <p class="text-[10px] text-gray-400 uppercase mt-1 font-bold">Operation</p>
                 </div>
                 <div onclick="window.onSelectCategory('授信')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-orange-500 text-center cursor-pointer shadow-sm">
                     <div class="text-5xl mb-4">📜</div><h3 class="font-bold text-gray-700 text-lg">授信</h3>
-                    <p class="text-[10px] text-gray-400 uppercase mt-1 font-bold">Credit</p>
                 </div>
                 <div onclick="window.onSelectCategory('零售')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-purple-500 text-center cursor-pointer shadow-sm">
                     <div class="text-5xl mb-4">🛍️</div><h3 class="font-bold text-gray-700 text-lg">零售</h3>
-                    <p class="text-[10px] text-gray-400 uppercase mt-1 font-bold">Retail</p>
                 </div>
             </div>
         </div>
 
-        <!-- B. 單元選擇 (多卷宗清單) -->
-        <div id="unitSelectView" class="hidden space-y-6">
-            <button onclick="window.backToCategories()" class="flex items-center text-xs text-gray-400 font-bold mb-4 hover:esun-text-green transition-colors">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>返回知識地圖
+        <div id="unitSelectView" class="hidden space-y-6 text-center">
+            <button onclick="window.backToCategories()" class="flex items-center text-xs text-gray-400 font-bold mb-4 hover:esun-text-green mx-auto">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round"></path></svg>返回知識地圖
             </button>
-            <div class="text-center mb-8">
-                <h2 id="selectedCatTitle" class="text-2xl font-bold text-gray-800">單元選擇</h2>
-                <p class="text-xs esun-text-gold font-bold uppercase tracking-widest mt-1">Select A Module To Start</p>
-            </div>
-            <div id="unitList" class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto">
-                <!-- 單元卡片將動態插入 -->
-            </div>
+            <div id="unitList" class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto"></div>
         </div>
 
-        <!-- C. 測驗介面 -->
         <div id="learnerQuiz" class="hidden max-w-xl mx-auto">
-            <button onclick="window.backToUnits()" class="flex items-center text-xs text-gray-400 font-bold mb-6 hover:esun-text-green">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"></path></svg>離開本單元
-            </button>
-            
             <div class="bg-white rounded-3xl shadow-sm p-6 mb-8 border border-gray-100">
                 <div class="flex justify-between items-center mb-4">
                     <span id="prog-text" class="text-xs font-bold text-gray-400 uppercase tracking-widest font-mono">01 / 00</span>
-                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold uppercase truncate max-w-[200px]">UNIT TITLE</span>
+                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold truncate max-w-[200px]">UNIT</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-2 shadow-inner overflow-hidden">
+                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                     <div id="prog-bar" class="esun-bg-gold h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
             </div>
-
             <div id="quiz-container"></div>
-
             <div id="result-screen" class="hidden bg-white rounded-[3rem] shadow-2xl p-12 text-center border border-gray-50 slide-in">
-                <div class="text-8xl mb-8 drop-shadow-lg">🏆</div>
+                <div class="text-8xl mb-8">🏆</div>
                 <h2 class="text-3xl font-bold text-gray-800 mb-2">精進成功</h2>
                 <p id="result-msg" class="text-gray-500 mb-10 leading-relaxed font-medium"></p>
-                <div class="space-y-4">
-                    <button onclick="window.restartQuiz()" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-90 active:scale-95 transition-all">重新挑戰本卷</button>
-                    <button onclick="window.backToUnits()" class="w-full bg-gray-100 text-gray-500 font-bold py-5 rounded-2xl hover:bg-gray-200 transition-all">返回單元列表</button>
-                </div>
+                <button onclick="window.backToUnits()" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-90 active:scale-95 transition-all">返回單元列表</button>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 2. 管理後台 -->
-    <!-- ========================================== -->
     <div id="adminSection" class="hidden max-w-6xl mx-auto p-4 py-8 slide-in">
-        <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+        <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
             <div>
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                    <span class="w-2 h-2 esun-bg-gold rounded-full mr-2"></span> 管理科目分組
-                </h3>
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 italic">Archives Management</h3>
                 <div class="flex gap-2">
-                    <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg transition-all">TMU</button>
+                    <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg">TMU</button>
                     <button onclick="window.switchAdminCat('存匯')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">存匯</button>
                     <button onclick="window.switchAdminCat('授信')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">授信</button>
                     <button onclick="window.switchAdminCat('零售')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">零售</button>
                 </div>
             </div>
-            <div class="text-right border-l pl-8 hidden md:block">
-                <p class="text-xs font-bold text-blue-500 mb-1 uppercase tracking-tighter font-mono">● DOMESTIC DIRECT SYNC</p>
-                <div class="flex gap-6 mt-2">
-                    <div><span class="block text-2xl font-bold text-gray-800" id="qCountTop">0</span><span class="text-[10px] text-gray-400 font-bold uppercase">Total Q&A</span></div>
-                    <div><span class="block text-2xl font-bold esun-text-gold">DeepSeek</span><span class="text-[10px] text-gray-400 font-bold uppercase">AI Engine</span></div>
-                </div>
+            <div class="text-right hidden md:block border-l pl-8">
+                <p class="text-xs font-bold text-blue-500 mb-1">● CLOUD SYNC ACTIVE</p>
+                <span class="block text-2xl font-bold text-gray-800" id="qCountTop">0</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- 左側：工具欄 -->
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-800 mb-6 flex items-center text-sm uppercase tracking-wide">1. 定義卷宗名稱</h3>
-                    <input type="text" id="unitTitleInput" class="w-full p-4 mb-8 border border-gray-100 rounded-2xl text-base font-bold focus:ring-2 focus:ring-[#006D41] focus:outline-none bg-gray-50 shadow-inner" placeholder="例如：2024 外管新規Q4版">
-                    
-                    <h3 class="font-bold text-gray-800 mb-4 flex items-center text-sm uppercase tracking-wide">2. 批量導入素材</h3>
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase">1. 定義名稱</h3>
+                    <input type="text" id="unitTitleInput" class="w-full p-4 mb-6 border border-gray-100 rounded-2xl text-base font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#006D41]" placeholder="例如：2024 外管新規">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase">2. 導入素材</h3>
                     <div id="dropZone" class="border-2 border-dashed border-gray-200 rounded-[1.5rem] p-8 text-center cursor-pointer hover:bg-green-50 mb-6 group transition-all">
-                        <div class="text-4xl mb-3 group-hover:scale-110 transition-transform">📂</div>
-                        <p class="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">點擊或拖放多個檔案<br>(PDF / Word / 圖片)</p>
+                        <div class="text-4xl mb-3">📂</div>
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">批量讀取 PDF/Word/圖片</p>
                         <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.jpg,.jpeg,.png" multiple>
                     </div>
-                    <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs focus:outline-none mb-6 shadow-inner" placeholder="解析後的文本會在此處累積串接..."></textarea>
-                    
-                    <div class="mb-6">
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">生成題數設定</label>
-                        <select id="batchCountSelect" class="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 shadow-sm focus:outline-none">
-                            <option value="5">批次新增 5 題 (精簡)</option>
-                            <option value="10">批次新增 10 題 (標準)</option>
-                            <option value="15">批次新增 15 題 (全面)</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col gap-3">
-                        <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <span>✨ 啟動 DeepSeek 智能出題</span>
-                        </button>
-                        <button id="addManualBtn" class="w-full bg-white esun-text-green border border-emerald-100 font-bold py-5 rounded-2xl shadow-sm hover:bg-emerald-50 active:scale-95 transition-all">
-                            ✍️ 啟動人工專家出題
-                        </button>
-                    </div>
+                    <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs mb-6 focus:outline-none" placeholder="解析後的文本將在此累積..."></textarea>
+                    <select id="batchCountSelect" class="w-full p-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 mb-6">
+                        <option value="5">新增 5 題</option><option value="10">新增 10 題</option><option value="15">新增 15 題</option>
+                    </select>
+                    <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-95 active:scale-95 transition-all">✨ 啟動 DeepSeek 出題</button>
+                    <button id="addManualBtn" class="w-full mt-3 bg-white esun-text-green border border-emerald-100 font-bold py-5 rounded-2xl shadow-sm hover:bg-emerald-50 transition-all">✍️ 手動專家出題</button>
                 </div>
             </div>
-
-            <!-- 右側：校閱區 -->
             <div class="lg:col-span-2">
                 <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 min-h-[700px] flex flex-col relative">
-                    <div class="flex justify-between items-center mb-8 pb-6 border-b border-gray-50">
-                        <h3 class="font-bold text-gray-800 text-xl flex items-center">
-                            <span id="currentAdminCatDisplay" class="esun-text-green mr-2 font-mono uppercase">[TMU]</span> 卷宗校閱
-                            <span id="qCountDisplay" class="ml-4 text-xs bg-gray-50 text-gray-400 px-4 py-1.5 rounded-full font-mono font-bold">0 / 15</span>
-                        </h3>
-                        <button id="publishBtn" class="esun-bg-gold text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl hover:opacity-90 active:scale-95 transition-all">
-                            🚀 正式存入雲端
-                        </button>
+                    <div class="flex justify-between items-center mb-8 pb-6 border-b">
+                        <h3 class="font-bold text-gray-800 text-xl"><span id="currentAdminCatDisplay" class="esun-text-green mr-2">[TMU]</span> 卷宗校閱</h3>
+                        <button id="publishBtn" class="esun-bg-gold text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl active:scale-95">🚀 正式存入雲端</button>
                     </div>
-
-                    <!-- AI 加載狀態 -->
                     <div id="aiLoader" class="hidden absolute inset-0 bg-white bg-opacity-95 z-20 flex flex-col items-center justify-center rounded-[2rem]">
-                        <div class="flex gap-3 mb-6">
-                            <div class="w-4 h-4 esun-bg-green rounded-full loading-dot"></div>
-                            <div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div>
-                            <div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div>
-                        </div>
-                        <p id="loaderText" class="text-base text-gray-400 font-bold tracking-widest uppercase">DeepSeek 正在深度掃描法規文件...</p>
+                        <div class="flex gap-3 mb-4"><div class="w-4 h-4 esun-bg-green rounded-full loading-dot"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div></div>
+                        <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">DeepSeek 解析中...</p>
                     </div>
-
                     <div id="editArea" class="space-y-8 flex-1 overflow-y-auto max-h-[650px] pr-4">
-                        <!-- 題目卡片將在此生成 -->
-                        <div class="text-center py-40 text-gray-200 italic flex flex-col items-center">
-                            <div class="text-6xl mb-4">📥</div>
-                            <p>請導入素材或定義標題後開始出題</p>
-                        </div>
+                        <div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>請導入素材或定義標題後開始出題</p></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-10 py-5 rounded-[1.5rem] text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100] border border-gray-700"></div>
 
     <script type="module">
-        // --- 雲端數據與同步邏輯 ---
-        // 考慮到大陸直連，此處建議對接 Cloudflare Worker 或 國內雲
-        // 目前先使用 localStorage 進行演示，並預留 Fetch 接口
-        
+        // --- 資料同步中心 ---
         async function fetchCloudExams() {
-            if (!CLOUDFLARE_WORKER_API) {
-                const localData = localStorage.getItem('china_direct_exams');
-                return localData ? JSON.parse(localData) : [];
-            }
+            if (!CLOUDFLARE_WORKER_API) return [];
             try {
-                const res = await fetch(CLOUDFLARE_WORKER_API + "/getExams");
+                const url = CLOUDFLARE_WORKER_API.replace(/\/$/, "") + "/getExams";
+                const res = await fetch(url);
                 return await res.json();
-            } catch (e) { return []; }
+            } catch (e) { console.error(e); return []; }
         }
 
         async function saveExamToCloud(examData) {
-            if (!CLOUDFLARE_WORKER_API) {
-                const current = await fetchCloudExams();
-                current.push({ id: Date.now().toString(), ...examData });
-                localStorage.setItem('china_direct_exams', JSON.stringify(current));
-                return true;
-            }
+            if (!CLOUDFLARE_WORKER_API) return false;
             try {
-                await fetch(CLOUDFLARE_WORKER_API + "/saveExam", {
+                const url = CLOUDFLARE_WORKER_API.replace(/\/$/, "") + "/saveExam";
+                const res = await fetch(url, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(examData)
                 });
-                return true;
-            } catch (e) { return false; }
+                return res.ok;
+            } catch (e) { console.error(e); return false; }
         }
 
         // --- 學員邏輯 ---
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat;
             window.currentView = 'unitSelect';
-            document.getElementById('selectedCatTitle').innerText = `${cat} 練習專區`;
-            document.getElementById('learnerHome').classList.add('hidden');
-            document.getElementById('unitSelectView').classList.remove('hidden');
-            window.showToast(`正在讀取 ${cat} 雲端單元...`);
+            const home = document.getElementById('learnerHome');
+            const units = document.getElementById('unitSelectView');
+            if(home) home.classList.add('hidden');
+            if(units) units.classList.remove('hidden');
+            window.showToast(`正在連線雲端智庫...`);
             window.allExams = await fetchCloudExams();
             window.renderUnitSelect();
         };
 
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList');
+            if(!list) return;
             const units = (window.allExams || []).filter(e => e.category === window.currentCategory);
-            
-            if (units.length === 0) {
-                list.innerHTML = `<div class="col-span-full text-center py-20 text-gray-300 italic">目前本分組尚無發布考題單元。</div>`;
-                return;
-            }
-
+            if (units.length === 0) { list.innerHTML = `<div class="col-span-full py-20 text-gray-300 italic">尚未發布單元。</div>`; return; }
             list.innerHTML = units.map(u => `
-                <div onclick="window.startExam('${u.id}')" class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-50 card-hover cursor-pointer group">
-                    <h4 class="font-bold text-gray-700 text-lg mb-2 group-hover:esun-text-green transition-colors">${u.title}</h4>
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] bg-gray-50 text-gray-400 px-3 py-1 rounded-full font-mono font-bold">${u.questions.length} 題測驗</span>
-                        <span class="text-[10px] font-bold esun-text-gold opacity-0 group-hover:opacity-100 transition-all">啟動挑戰 →</span>
-                    </div>
-                </div>
-            `).join('');
+                <div onclick="window.startExam('${u.id}')" class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-50 card-hover cursor-pointer group text-left">
+                    <h4 class="font-bold text-gray-700 text-lg mb-2">${u.title}</h4>
+                    <span class="text-[10px] bg-gray-50 text-gray-400 px-3 py-1 rounded-full font-bold">${u.questions.length} 題測驗</span>
+                </div>`).join('');
         };
 
         window.startExam = (examId) => {
             const exam = window.allExams.find(e => e.id === examId);
             if (!exam) return;
-            window.quizData = exam.questions;
-            window.currentIdx = 0; window.score = 0;
-            document.getElementById('unitSelectView').classList.add('hidden');
-            document.getElementById('learnerQuiz').classList.remove('hidden');
-            document.getElementById('unit-badge').innerText = exam.title;
+            window.quizData = exam.questions; window.currentIdx = 0; window.score = 0;
+            const select = document.getElementById('unitSelectView');
+            const quiz = document.getElementById('learnerQuiz');
+            const badge = document.getElementById('unit-badge');
+            if(select) select.classList.add('hidden');
+            if(quiz) quiz.classList.remove('hidden');
+            if(badge) badge.innerText = exam.title;
             window.renderQuestion();
         };
 
-        window.backToCategories = () => {
-            window.currentView = 'home';
-            document.getElementById('unitSelectView').classList.add('hidden');
-            document.getElementById('learnerHome').classList.remove('hidden');
+        window.backToCategories = () => { 
+            const select = document.getElementById('unitSelectView');
+            const home = document.getElementById('learnerHome');
+            if(select) select.classList.add('hidden'); 
+            if(home) home.classList.remove('hidden'); 
         };
-
-        window.backToUnits = () => {
-            window.currentView = 'unitSelect';
-            document.getElementById('learnerQuiz').classList.add('hidden');
-            document.getElementById('unitSelectView').classList.remove('hidden');
-            window.renderUnitSelect();
+        
+        window.backToUnits = () => { 
+            const quiz = document.getElementById('learnerQuiz');
+            const select = document.getElementById('unitSelectView');
+            if(quiz) quiz.classList.add('hidden'); 
+            if(select) select.classList.remove('hidden'); 
+            window.renderUnitSelect(); 
         };
 
         window.renderQuestion = () => {
             const container = document.getElementById('quiz-container');
-            const result = document.getElementById('result-screen');
-            if (!window.quizData[window.currentIdx]) return;
-            const item = window.quizData[window.currentIdx];
-            
-            result.classList.add('hidden'); 
-            container.classList.remove('hidden');
-            
-            document.getElementById('prog-text').innerText = `${(window.currentIdx + 1).toString().padStart(2, '0')} / ${window.quizData.length.toString().padStart(2, '0')}`;
-            document.getElementById('prog-bar').style.width = `${((window.currentIdx + 1) / window.quizData.length) * 100}%`;
-            
+            const item = window.quizData[window.currentIdx]; if (!item || !container) return;
+            const progText = document.getElementById('prog-text');
+            const progBar = document.getElementById('prog-bar');
+            if(progText) progText.innerText = `${(window.currentIdx + 1).toString().padStart(2, '0')} / ${window.quizData.length.toString().padStart(2, '0')}`;
+            if(progBar) progBar.style.width = `${((window.currentIdx + 1) / window.quizData.length) * 100}%`;
             container.innerHTML = `
                 <div class="bg-white rounded-[2.5rem] shadow-sm p-10 mb-8 slide-in border border-gray-50">
-                    <div class="mb-10">
-                        <span class="text-[10px] font-bold esun-text-gold uppercase tracking-[0.2em] mb-2 block">Case Analysis</span>
-                        <h3 class="text-2xl font-bold text-gray-800 leading-snug">${item.q}</h3>
-                    </div>
-                    <div class="space-y-4">
-                        ${item.o.map((opt, i) => `
-                            <button onclick="window.handleSelect(${i})" class="quiz-btn w-full text-left p-6 rounded-2xl border-2 border-gray-50 hover:esun-border-green hover:bg-green-50 transition-all font-medium text-gray-700 shadow-sm flex justify-between items-center group">
-                                <span>${opt}</span>
-                                <div class="w-2 h-2 rounded-full esun-bg-gold opacity-0 group-hover:opacity-100 transition-all"></div>
-                            </button>`).join('')}
-                    </div>
-                    <div id="expl-box" class="hidden mt-12 p-8 bg-[#fdfaf2] rounded-3xl border-l-8 esun-border-gold shadow-sm">
-                        <div class="flex items-start gap-4">
-                            <span class="text-3xl mt-1">💡</span>
-                            <div class="text-base leading-relaxed text-gray-800">
-                                <span class="font-bold block mb-3 text-lg esun-text-green border-b border-green-100 pb-1 underline decoration-gold">專家解析與指導</span>
-                                ${item.i}
-                            </div>
-                        </div>
-                        <button onclick="window.nextQuest()" class="mt-10 w-full esun-bg-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all">繼續下一個考題</button>
-                    </div>
-                </div>
-            `;
+                    <h3 class="text-2xl font-bold text-gray-800 leading-snug mb-10">${item.q}</h3>
+                    <div class="space-y-4">${item.o.map((opt, i) => `<button onclick="window.handleSelect(${i})" class="quiz-btn w-full text-left p-6 rounded-2xl border-2 border-gray-50 hover:esun-border-green hover:bg-green-50 font-medium text-gray-700 shadow-sm flex justify-between items-center group"><span>${opt}</span><div class="w-2 h-2 rounded-full esun-bg-gold opacity-0 group-hover:opacity-100 transition-all"></div></button>`).join('')}</div>
+                    <div id="expl-box" class="hidden mt-12 p-8 bg-[#fdfaf2] rounded-3xl border-l-8 esun-border-gold shadow-sm"><div class="flex items-start gap-4"><span class="text-3xl mt-1">💡</span><div class="text-base text-gray-800"><span class="font-bold block mb-3 text-lg esun-text-green">行長專家解析</span>${item.i}</div></div><button onclick="window.nextQuest()" class="mt-10 w-full esun-bg-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all">下一題</button></div>
+                </div>`;
         };
 
         window.handleSelect = (idx) => {
-            const correct = window.quizData[window.currentIdx].a;
-            const btns = document.querySelectorAll('.quiz-btn');
+            const correct = window.quizData[window.currentIdx].a; const btns = document.querySelectorAll('.quiz-btn');
             btns.forEach(b => b.disabled = true);
-            if (idx == correct) { 
-                window.score++; 
-                btns[idx].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); 
-            } else { 
-                btns[idx].classList.add('bg-red-50', 'border-red-500', 'text-red-700'); 
-                btns[correct].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); 
-            }
-            document.getElementById('expl-box').classList.remove('hidden');
-            document.getElementById('expl-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (idx == correct) { window.score++; btns[idx].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); }
+            else { btns[idx].classList.add('bg-red-50', 'border-red-500', 'text-red-700'); btns[correct].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); }
+            const box = document.getElementById('expl-box');
+            if(box) box.classList.remove('hidden');
         };
 
         window.nextQuest = () => { 
             window.currentIdx++; 
-            if (window.currentIdx < window.quizData.length) window.renderQuestion(); else window.showResult(); 
+            if (window.currentIdx < window.quizData.length) {
+                window.renderQuestion();
+            } else { 
+                const quiz = document.getElementById('quiz-container');
+                const screen = document.getElementById('result-screen');
+                const msg = document.getElementById('result-msg');
+                if(quiz) quiz.classList.add('hidden'); 
+                if(screen) screen.classList.remove('hidden'); 
+                if(msg) msg.innerText = `精進完成！本次答對 ${window.score} 題。`; 
+            } 
         };
-
-        window.showResult = () => { 
-            document.getElementById('quiz-container').classList.add('hidden'); 
-            document.getElementById('result-screen').classList.remove('hidden'); 
-            document.getElementById('result-msg').innerText = `非常優秀！本次練習答對了 ${window.score} 題。持續練習，成就銀行家專業。`; 
-        };
-
+        
         window.restartQuiz = () => { window.currentIdx = 0; window.score = 0; window.renderQuestion(); };
 
-        // --- 管理邏輯：整批解析 ---
-        const fileInput = document.getElementById('fileInput');
-        document.getElementById('dropZone').onclick = () => fileInput.click();
-        
-        fileInput.onchange = async (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
-            window.uploadedImages = []; 
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                window.showToast(`正在讀取 (${i+1}/${files.length}): ${file.name}`);
-                
-                if (file.type === "application/pdf") {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
-                        let text = ""; 
-                        for (let p = 1; p <= pdf.numPages; p++) { 
-                            const page = await pdf.getPage(p); 
-                            const content = await page.getTextContent(); 
-                            text += content.items.map(s => s.str).join(" ") + "\n"; 
+        // --- 管理後台 ---
+        const initAdminListeners = () => {
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            const aiGenBtn = document.getElementById('aiGenBtn');
+            const addManualBtn = document.getElementById('addManualBtn');
+            const publishBtn = document.getElementById('publishBtn');
+
+            if(dropZone && fileInput) {
+                dropZone.onclick = () => fileInput.click();
+                fileInput.onchange = async (e) => {
+                    const files = Array.from(e.target.files); if (files.length === 0) return;
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i]; window.showToast(`讀取中: ${file.name}`);
+                        if (file.type === "application/pdf") {
+                            const arrayBuffer = await file.arrayBuffer(); 
+                            const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+                            let text = ""; for (let p = 1; p <= pdf.numPages; p++) { const page = await pdf.getPage(p); const content = await page.getTextContent(); text += content.items.map(s => s.str).join(" ") + "\n"; }
+                            const raw = document.getElementById('rawText');
+                            if(raw) raw.value += text + "\n";
+                        } else if (file.name.endsWith(".docx")) {
+                            const arrayBuffer = await file.arrayBuffer(); 
+                            const res = await mammoth.extractRawText({ arrayBuffer });
+                            const raw = document.getElementById('rawText');
+                            if(raw) raw.value += res.value + "\n";
+                        } else if (file.type.startsWith("image/")) {
+                            const raw = document.getElementById('rawText');
+                            if(raw) raw.value += `[ 圖片素材已掛載 ]\n`;
                         }
-                        document.getElementById('rawText').value += `\n[ PDF 導入: ${file.name} ]\n` + text;
-                    } catch (err) { console.error("PDF 解析失敗:", err); }
-                } else if (file.name.endsWith(".docx")) {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const res = await mammoth.extractRawText({ arrayBuffer });
-                        document.getElementById('rawText').value += `\n[ Word 導入: ${file.name} ]\n` + res.value;
-                    } catch (err) { console.error("Word 解析失敗:", err); }
-                } else if (file.type.startsWith("image/")) {
-                    const base64 = await new Promise(resolve => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.readAsDataURL(file);
-                    });
-                    window.uploadedImages.push(base64);
-                    document.getElementById('rawText').value += `\n[ 圖片素材掛載: ${file.name} ]\n`;
-                }
+                    }
+                    window.showToast(`✅ 檔案讀取完成`);
+                };
             }
-            window.showToast(`✅ 已整批讀取 ${files.length} 個檔案`);
+
+            if(aiGenBtn) {
+                aiGenBtn.onclick = async () => {
+                    const raw = document.getElementById('rawText');
+                    const text = raw ? raw.value : ""; 
+                    const reqSelect = document.getElementById('batchCountSelect');
+                    const req = reqSelect ? reqSelect.value : "5";
+                    if (!text) return window.showToast("請先導入素材。");
+                    const loader = document.getElementById('aiLoader'); if(loader) loader.classList.remove('hidden');
+                    try {
+                        const prompt = `你是一位銀行專家。請針對以下內容產出 ${req} 題單選練習。格式：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。內容：\n${text}`;
+                        const res = await fetch(DEEPSEEK_ENDPOINT, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
+                            body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: prompt }] })
+                        });
+                        const json = await res.json();
+                        const clean = json.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
+                        window.tempEditData = window.tempEditData.concat(JSON.parse(clean)); window.renderEditCards();
+                        window.showToast("AI 考題提取成功！");
+                    } catch (e) { window.showToast("AI 解析失敗。"); }
+                    if(loader) loader.classList.add('hidden');
+                };
+            }
+
+            if(addManualBtn) {
+                addManualBtn.onclick = () => { window.tempEditData.push({ q: "手動考題", o: ["A", "B", "C", "D"], a: 0, i: "解析" }); window.renderEditCards(); };
+            }
+
+            if(publishBtn) {
+                publishBtn.onclick = async () => {
+                    const titleInput = document.getElementById('unitTitleInput');
+                    const title = titleInput ? titleInput.value : ""; 
+                    if (!title) return window.showToast("請定義名稱。");
+                    const btn = document.getElementById('publishBtn'); 
+                    if(btn) { btn.disabled = true; btn.innerText = "資料同步中..."; }
+                    const ok = await saveExamToCloud({ category: window.currentCategory, title, questions: window.tempEditData, timestamp: Date.now() });
+                    if (ok) { 
+                        window.showToast(`✅ 【${title}】發布成功！`); 
+                        window.tempEditData = []; 
+                        if(titleInput) titleInput.value = ""; 
+                        window.renderEditCards(); 
+                    } else { window.showToast("❌ 雲端發布失敗。"); }
+                    if(btn) { btn.disabled = false; btn.innerText = "🚀 正式存入雲端"; }
+                };
+            }
         };
-
-        document.getElementById('addManualBtn').onclick = () => {
-            const count = window.tempEditData.length; if (count >= 15) return window.showToast("單份卷宗上限 15 題。");
-            const requested = parseInt(document.getElementById('batchCountSelect').value);
-            const toAdd = Math.min(requested, 15 - count);
-            for (let i = 0; i < toAdd; i++) window.tempEditData.push({ q: "手動新增題目：請點擊編輯內容", o: ["選項 A", "選項 B", "選項 C", "選項 D"], a: 0, i: "專家解析說明。" });
-            window.renderEditCards();
-        };
-
-        // --- DeepSeek 智能出題 (直連版) ---
-        document.getElementById('aiGenBtn').onclick = async () => {
-            if (!DEEPSEEK_API_KEY) return window.showToast("⚠️ 請先在程式碼中填入 DeepSeek API Key");
-            const text = document.getElementById('rawText').value;
-            const requested = parseInt(document.getElementById('batchCountSelect').value);
-            if (!text && window.uploadedImages.length === 0) return window.showToast("行長，請先整批導入素材。");
-            
-            const toGen = Math.min(requested, 15 - window.tempEditData.length);
-            const loader = document.getElementById('aiLoader'); 
-            loader.classList.remove('hidden');
-            
-            try {
-                const data = await callDeepSeek(text, window.uploadedImages, toGen);
-                window.tempEditData = window.tempEditData.concat(data); 
-                window.renderEditCards();
-                window.showToast("DeepSeek 知識提取成功！");
-            } catch (e) { window.showToast("DeepSeek 服務忙碌或 Key 無效，請重試。"); }
-            loader.classList.add('hidden');
-        };
-
-        async function callDeepSeek(text, imgs, count) {
-            // DeepSeek API 是 OpenAI 相容格式
-            const prompt = `你是一位資深銀行合規與培訓專家。請深度閱讀以下法規素材並產出 ${count} 題具備高度嚴謹度的單選練習題。
-題目必須包含：題目(q)、四個選項(o)、正確選項索引(a, 0-3)、專家解析(i)。
-請確保解析內容包含實務操作指引。
-返回格式必須是純 JSON 數組，禁止任何 Markdown 標籤：[{"q":"...","o":["..."],"a":0,"i":"..."}]
-法規內容：\n${text}`;
-
-            const response = await fetch(DEEPSEEK_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.7
-                })
-            });
-
-            const res = await response.json();
-            const content = res.choices[0].message.content;
-            return JSON.parse(content.replace(/```json/g, '').replace(/```/g, '').trim());
-        }
 
         window.renderEditCards = () => {
             const area = document.getElementById('editArea');
-            const count = window.tempEditData.length;
-            document.getElementById('qCountDisplay').innerText = `${count} / 15`;
-            document.getElementById('qCountTop').innerText = count;
-
-            if (count === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>尚未導入考題素材。</p></div>`; return; }
+            const qTop = document.getElementById('qCountTop');
+            const qDisp = document.getElementById('qCountDisplay');
+            if(qTop) qTop.innerText = window.tempEditData.length;
+            if(qDisp) qDisp.innerText = `${window.tempEditData.length} / 15`;
+            if(!area) return;
+            if (window.tempEditData.length === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200">尚未導入考題。</div>`; return; }
             area.innerHTML = window.tempEditData.map((d, i) => `
-                <div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-100 slide-in mb-6 relative hover:bg-white transition-all shadow-sm group">
-                    <button onclick="window.deleteQuestion(${i})" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">🗑️</button>
-                    <div class="flex items-center gap-4 mb-6">
-                        <span class="esun-bg-green text-white w-8 h-8 rounded-full text-xs flex items-center justify-center font-bold font-mono">${i+1}</span>
-                        <input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="flex-1 font-bold bg-transparent border-b-2 border-gray-100 focus:esun-border-green focus:outline-none py-2 text-gray-800 text-lg">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 pl-12">
-                        ${d.o.map((o, oi) => `
-                            <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-50">
-                                <input type="radio" name="corr_${i}" ${d.a == oi ? 'checked' : ''} onchange="window.tempEditData[${i}].a=${oi}" class="accent-emerald-600">
-                                <input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-sm w-full focus:outline-none bg-transparent">
-                            </div>`).join('')}
-                    </div>
-                    <div class="mt-6 pl-12 flex gap-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
-                        <span class="text-2xl">💡</span>
-                        <div class="flex-1">
-                            <label class="block text-[10px] font-bold text-yellow-600 mb-2 uppercase tracking-widest font-mono italic">Expert Guidance</label>
-                            <textarea oninput="window.tempEditData[${i}].i=this.value" class="w-full bg-transparent text-sm text-yellow-900 focus:outline-none resize-none leading-relaxed font-medium" rows="3" placeholder="在此輸入行長對此題的經驗指導...">${d.i}</textarea>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                <div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-100 slide-in mb-6 relative hover:bg-white group text-left">
+                    <button onclick="window.tempEditData.splice(${i}, 1); window.renderEditCards();" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
+                    <div class="flex items-center gap-4 mb-6"><span class="esun-bg-green text-white w-8 h-8 rounded-full text-xs flex items-center justify-center font-bold">${i+1}</span><input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="flex-1 font-bold bg-transparent border-b-2 border-gray-100 focus:outline-none py-2 text-gray-800"></div>
+                    <div class="grid grid-cols-2 gap-4 pl-12">${d.o.map((o, oi) => `<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-50"><input type="radio" name="corr_${i}" ${d.a == oi ? 'checked' : ''} onchange="window.tempEditData[${i}].a=${oi}"><input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-sm w-full focus:outline-none"></div>`).join('')}</div>
+                    <div class="mt-6 pl-12 flex gap-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-100"><span class="text-2xl">💡</span><textarea oninput="window.tempEditData[${i}].i=this.value" class="w-full bg-transparent text-sm text-yellow-900 focus:outline-none" rows="3">${d.i}</textarea></div>
+                </div>`).join('');
         };
-
-        window.deleteQuestion = (idx) => { window.tempEditData.splice(idx, 1); window.renderEditCards(); };
 
         window.switchAdminCat = (cat) => {
             window.currentCategory = cat;
-            document.getElementById('currentAdminCatDisplay').innerText = `[${cat}]`;
+            const disp = document.getElementById('currentAdminCatDisplay');
+            if(disp) disp.innerText = `[${cat}]`;
             document.querySelectorAll('.admin-cat-btn').forEach(btn => {
-                btn.className = btn.innerText === cat 
-                    ? "admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg transition-all"
+                btn.className = btn.innerText === cat 
+                    ? "admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg"
                     : "admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100";
             });
-            window.tempEditData = []; 
-            document.getElementById('unitTitleInput').value = "";
+            window.tempEditData = []; 
+            const titleInput = document.getElementById('unitTitleInput');
+            if(titleInput) titleInput.value = "";
             window.renderEditCards();
         };
 
-        document.getElementById('publishBtn').onclick = async () => {
-            const title = document.getElementById('unitTitleInput').value;
-            if (!title) return window.showToast("⚠️ 請先定義卷宗名稱。");
-            if (window.tempEditData.length === 0) return window.showToast("⚠️ 目前沒有可發布題目。");
-            
-            const btn = document.getElementById('publishBtn');
-            btn.disabled = true; btn.innerText = "資料同步中...";
-            
-            const success = await saveExamToCloud({
-                category: window.currentCategory,
-                title: title,
-                questions: window.tempEditData,
-                timestamp: Date.now()
-            });
+        window.showToast = (msg) => { 
+            const t = document.getElementById('toast'); 
+            if(!t) return;
+            t.innerText = msg; t.classList.remove('opacity-0'); 
+            setTimeout(() => t.classList.add('opacity-0'), 3000); 
+        };
 
-            if (success) {
-                window.showToast(`✅ 【${title}】已發布成功！`);
-                window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; window.renderEditCards();
-            } else {
-                window.showToast("❌ 雲端存取失敗。");
+        // 頁面切換與初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const lBtn = document.getElementById('viewLearner'); 
+            const aBtn = document.getElementById('viewAdmin');
+            const learnerSection = document.getElementById('learnerSection');
+            const adminSection = document.getElementById('adminSection');
+
+            if(lBtn && aBtn && learnerSection && adminSection) {
+                lBtn.onclick = () => { 
+                    learnerSection.classList.remove('hidden'); 
+                    adminSection.classList.add('hidden'); 
+                    lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm"; 
+                    aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1"; 
+                    window.backToCategories(); 
+                };
+                aBtn.onclick = () => { 
+                    learnerSection.classList.add('hidden'); 
+                    adminSection.classList.remove('hidden'); 
+                    aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm"; 
+                    lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1"; 
+                    window.switchAdminCat(window.currentCategory); 
+                };
             }
-            btn.disabled = false; btn.innerText = "🚀 正式發布雲端";
-        };
 
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.classList.remove('opacity-0');
-            setTimeout(() => t.classList.add('opacity-0'), 3000);
-        };
-
-        const lBtn = document.getElementById('viewLearner');
-        const aBtn = document.getElementById('viewAdmin');
-        lBtn.onclick = () => {
-            window.currentMode = 'learner';
-            document.getElementById('learnerSection').classList.remove('hidden');
-            document.getElementById('adminSection').classList.add('hidden');
-            lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm";
-            aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1";
-            window.backToCategories();
-        };
-        aBtn.onclick = () => {
-            window.currentMode = 'admin';
-            document.getElementById('learnerSection').classList.add('hidden');
-            document.getElementById('adminSection').classList.remove('hidden');
-            aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm";
-            lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1";
-            window.switchAdminCat(window.currentCategory);
-        };
-
-        window.onload = () => {
-            console.log("China Direct System Loaded.");
-        };
+            // 初始化管理端監聽器
+            initAdminListeners();
+            console.log("China Direct System Loaded and Protected.");
+        });
     </script>
 </body>
 </html>
