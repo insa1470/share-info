@@ -1,0 +1,36 @@
+// 這段代碼跑在 Cloudflare 的伺服器上，負責收發考題數據
+export default {
+  async fetch(request, env) {
+    // 處理跨域問題 (讓您的網頁可以存取這個 API)
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+    const url = new URL(request.url);
+    
+    // 1. 獲取數據 (Get Exams)
+    if (url.pathname === "/getExams") {
+      const data = await env.STUDY_DB.get("all_exams");
+      return new Response(data || "[]", { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // 2. 儲存數據 (Save Exam)
+    if (url.pathname === "/saveExam" && request.method === "POST") {
+      const newExam = await request.json();
+      let currentData = await env.STUDY_DB.get("all_exams");
+      let exams = currentData ? JSON.parse(currentData) : [];
+      
+      // 加上唯一 ID 並存入
+      exams.push({ id: Date.now().toString(), ...newExam });
+      await env.STUDY_DB.put("all_exams", JSON.stringify(exams));
+      
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    return new Response("Not Found", { status: 404 });
+  }
+};
