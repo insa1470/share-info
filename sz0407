@@ -55,7 +55,7 @@
         const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
         
         // 雲端資料庫接口 (對接您的 Cloudflare Worker URL)
-        const CLOUDFLARE_WORKER_API = ""; 
+        const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev/"; 
 
         // 全域狀態
         window.currentCategory = "TMU";
