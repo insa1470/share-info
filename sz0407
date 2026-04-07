@@ -51,7 +51,7 @@
     <script>
         // 行長，請在此處填入您的 DeepSeek API Key
         // 這邊建議透過 Cloudflare 環境變數傳遞，目前先預留接口
-        const DEEPSEEK_API_KEY = ""; 
+        const DEEPSEEK_API_KEY = "sk-6b982e0502244ac1ae9ef3ee8fce7178"; 
         const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
         
         // 雲端資料庫接口 (對接您的 Cloudflare Worker URL)
