@@ -1,1 +1,369 @@
 
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企業智慧學習平台 - 大陸直連版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        :root { --esun-green: #006D41; --esun-gold: #D4AF37; --bg-light: #f4f7f5; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-light); color: #1a1a1a; }
+        .esun-bg-green { background-color: var(--esun-green); }
+        .esun-text-green { color: var(--esun-green); }
+        .esun-bg-gold { background-color: var(--esun-gold); }
+        .esun-text-gold { color: var(--esun-gold); }
+        .esun-border-green { border-color: var(--esun-green); }
+        .slide-in { animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading-dot { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -10px rgba(0, 109, 65, 0.2); }
+        .quiz-btn:active { transform: scale(0.97); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--esun-green); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <script>
+        const DEEPSEEK_API_KEY = "sk-6b982e0502244ac1ae9ef3ee8fce7178"; 
+        const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
+        const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev"; 
+
+        window.currentCategory = "TMU";
+        window.currentView = 'home';
+        window.allExams = []; 
+        window.tempEditData = [];
+        window.quizData = [];
+        window.currentIdx = 0;
+        window.score = 0;
+        window.uploadedImages = [];
+    </script>
+
+    <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 esun-bg-green rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg border-b-2 border-[#D4AF37]">智庫</div>
+            <div>
+                <h1 class="font-bold text-gray-800 text-lg leading-tight tracking-tight">企業智慧學習平台</h1>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">China Direct Access Edition</p>
+            </div>
+        </div>
+        <div class="flex bg-gray-50 p-1 rounded-xl border border-gray-100 shadow-inner">
+            <button id="viewLearner" class="text-xs px-5 py-2 rounded-lg font-bold transition-all bg-white esun-text-green shadow-sm">學員端</button>
+            <button id="viewAdmin" class="text-xs px-5 py-2 rounded-lg font-bold transition-all text-gray-400 hover:text-gray-600 ml-1">管理端</button>
+        </div>
+    </nav>
+
+    <div id="learnerSection" class="max-w-4xl mx-auto p-4 py-8 slide-in">
+        <div id="learnerHome" class="space-y-10">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-gray-800 tracking-tight">專業知識地圖</h2>
+                <div class="w-16 h-1 esun-bg-gold mx-auto rounded-full"></div>
+                <p class="text-gray-500 text-sm italic font-medium">數據已實現大陸境內直連同步</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div onclick="window.onSelectCategory('TMU')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 esun-border-green cursor-pointer shadow-sm">
+                    <div class="text-5xl mb-4">📈</div><h3 class="font-bold text-gray-700 text-lg">TMU</h3>
+                </div>
+                <div onclick="window.onSelectCategory('存匯')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-blue-600 cursor-pointer shadow-sm">
+                    <div class="text-5xl mb-4">💰</div><h3 class="font-bold text-gray-700 text-lg">存匯</h3>
+                </div>
+                <div onclick="window.onSelectCategory('授信')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-orange-500 cursor-pointer shadow-sm">
+                    <div class="text-5xl mb-4">📜</div><h3 class="font-bold text-gray-700 text-lg">授信</h3>
+                </div>
+                <div onclick="window.onSelectCategory('零售')" class="card-hover bg-white p-8 rounded-[2rem] border-b-4 border-purple-500 cursor-pointer shadow-sm">
+                    <div class="text-5xl mb-4">🛍️</div><h3 class="font-bold text-gray-700 text-lg">零售</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="unitSelectView" class="hidden space-y-6 text-center">
+            <button onclick="window.backToCategories()" class="flex items-center text-xs text-gray-400 font-bold mb-4 hover:esun-text-green mx-auto">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round"></path></svg>返回知識地圖
+            </button>
+            <div id="unitList" class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto"></div>
+        </div>
+
+        <div id="learnerQuiz" class="hidden max-w-xl mx-auto">
+            <div class="bg-white rounded-3xl shadow-sm p-6 mb-8 border border-gray-100">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="prog-text" class="text-xs font-bold text-gray-400 uppercase tracking-widest font-mono">01 / 00</span>
+                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold truncate max-w-[200px]">UNIT</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div id="prog-bar" class="esun-bg-gold h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="quiz-container"></div>
+            <div id="result-screen" class="hidden bg-white rounded-[3rem] shadow-2xl p-12 text-center border border-gray-50 slide-in">
+                <div class="text-8xl mb-8">🏆</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">精進成功</h2>
+                <p id="result-msg" class="text-gray-500 mb-10 leading-relaxed font-medium"></p>
+                <button onclick="window.backToUnits()" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-90 active:scale-95 transition-all">返回單元列表</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminSection" class="hidden max-w-6xl mx-auto p-4 py-8 slide-in">
+        <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+            <div>
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 italic">Archives Management</h3>
+                <div class="flex gap-2">
+                    <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg">TMU</button>
+                    <button onclick="window.switchAdminCat('存匯')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">存匯</button>
+                    <button onclick="window.switchAdminCat('授信')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">授信</button>
+                    <button onclick="window.switchAdminCat('零售')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">零售</button>
+                </div>
+            </div>
+            <div class="text-right hidden md:block border-l pl-8">
+                <p class="text-xs font-bold text-blue-500 mb-1 tracking-tighter">● CLOUD SYNC ACTIVE</p>
+                <span class="block text-2xl font-bold text-gray-800" id="qCountTop">0</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">1. 定義名稱</h3>
+                    <input type="text" id="unitTitleInput" class="w-full p-4 mb-6 border border-gray-100 rounded-2xl text-base font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#006D41]" placeholder="例如：2024 外管新規">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">2. 導入素材</h3>
+                    <div id="dropZone" class="border-2 border-dashed border-gray-200 rounded-[1.5rem] p-8 text-center cursor-pointer hover:bg-green-50 mb-6 group transition-all">
+                        <div class="text-4xl mb-3">📂</div>
+                        <p class="text-xs text-gray-500 font-bold leading-relaxed uppercase">點擊導入 PDF/Word/圖片</p>
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.jpg,.jpeg,.png" multiple>
+                    </div>
+                    <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs mb-6 focus:outline-none shadow-inner" placeholder="解析後的文本會在此累積..."></textarea>
+                    <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-95 active:scale-95 transition-all">✨ 啟動 DeepSeek 出題</button>
+                    <button id="addManualBtn" class="w-full mt-3 bg-white esun-text-green border border-emerald-100 font-bold py-5 rounded-2xl shadow-sm hover:bg-emerald-50 active:scale-95">✍️ 手動專家出題</button>
+                </div>
+            </div>
+            <div class="lg:col-span-2">
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 min-h-[700px] flex flex-col relative">
+                    <div class="flex justify-between items-center mb-8 pb-6 border-b">
+                        <h3 class="font-bold text-gray-800 text-xl flex items-center"><span id="currentAdminCatDisplay" class="esun-text-green mr-2 font-mono uppercase">[TMU]</span> 卷宗校閱</h3>
+                        <button id="publishBtn" class="esun-bg-gold text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all">🚀 正式存入雲端</button>
+                    </div>
+                    <div id="aiLoader" class="hidden absolute inset-0 bg-white bg-opacity-95 z-20 flex flex-col items-center justify-center rounded-[2rem]">
+                        <div class="flex gap-3 mb-4"><div class="w-4 h-4 esun-bg-green rounded-full loading-dot"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div></div>
+                        <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">DeepSeek 解析中...</p>
+                    </div>
+                    <div id="editArea" class="space-y-8 flex-1 overflow-y-auto max-h-[650px] pr-4 text-left">
+                        <div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>請導入素材開始校閱</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-10 py-5 rounded-[1.5rem] text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100]"></div>
+
+    <script type="module">
+        async function fetchCloudExams() {
+            if (!CLOUDFLARE_WORKER_API) return [];
+            try {
+                const url = CLOUDFLARE_WORKER_API.replace(/\/$/, "") + "/getExams";
+                const res = await fetch(url);
+                return await res.json();
+            } catch (e) { return []; }
+        }
+
+        async function saveExamToCloud(examData) {
+            if (!CLOUDFLARE_WORKER_API) return false;
+            try {
+                const url = CLOUDFLARE_WORKER_API.replace(/\/$/, "") + "/saveExam";
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(examData)
+                });
+                return res.ok;
+            } catch (e) { return false; }
+        }
+
+        window.onSelectCategory = async (cat) => {
+            window.currentCategory = cat;
+            document.getElementById('learnerHome').classList.add('hidden');
+            document.getElementById('unitSelectView').classList.remove('hidden');
+            window.showToast(`正在連線雲端智庫...`);
+            window.allExams = await fetchCloudExams();
+            window.renderUnitSelect();
+        };
+
+        window.renderUnitSelect = () => {
+            const list = document.getElementById('unitList');
+            if(!list) return;
+            const units = (window.allExams || []).filter(e => e.category === window.currentCategory);
+            if (units.length === 0) { list.innerHTML = `<div class="col-span-full py-20 text-gray-300 italic">尚未發布單元。</div>`; return; }
+            list.innerHTML = units.map(u => `
+                <div onclick="window.startExam('${u.id}')" class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-50 card-hover cursor-pointer group text-left">
+                    <h4 class="font-bold text-gray-700 text-lg mb-2">${u.title}</h4>
+                    <span class="text-[10px] bg-gray-50 text-gray-400 px-3 py-1 rounded-full font-bold">${u.questions.length} 題測驗</span>
+                </div>`).join('');
+        };
+
+        window.startExam = (examId) => {
+            const exam = window.allExams.find(e => e.id === examId);
+            if (!exam) return;
+            window.quizData = exam.questions; window.currentIdx = 0; window.score = 0;
+            document.getElementById('unitSelectView').classList.add('hidden');
+            document.getElementById('learnerQuiz').classList.remove('hidden');
+            document.getElementById('unit-badge').innerText = exam.title;
+            window.renderQuestion();
+        };
+
+        window.backToCategories = () => { document.getElementById('unitSelectView').classList.add('hidden'); document.getElementById('learnerHome').classList.remove('hidden'); };
+        window.backToUnits = () => { document.getElementById('learnerQuiz').classList.add('hidden'); document.getElementById('unitSelectView').classList.remove('hidden'); window.renderUnitSelect(); };
+
+        window.renderQuestion = () => {
+            const container = document.getElementById('quiz-container');
+            const item = window.quizData[window.currentIdx]; if (!item || !container) return;
+            document.getElementById('prog-text').innerText = `${(window.currentIdx + 1).toString().padStart(2, '0')} / ${window.quizData.length.toString().padStart(2, '0')}`;
+            document.getElementById('prog-bar').style.width = `${((window.currentIdx + 1) / window.quizData.length) * 100}%`;
+            container.innerHTML = `
+                <div class="bg-white rounded-[2.5rem] shadow-sm p-10 mb-8 slide-in border border-gray-50 text-left">
+                    <h3 class="text-2xl font-bold text-gray-800 leading-snug mb-10">${item.q}</h3>
+                    <div class="space-y-4">${item.o.map((opt, i) => `<button onclick="window.handleSelect(${i})" class="quiz-btn w-full text-left p-6 rounded-2xl border-2 border-gray-50 hover:esun-border-green hover:bg-green-50 transition-all font-medium text-gray-700 shadow-sm flex justify-between items-center group"><span>${opt}</span><div class="w-2 h-2 rounded-full esun-bg-gold opacity-0 group-hover:opacity-100 transition-all"></div></button>`).join('')}</div>
+                    <div id="expl-box" class="hidden mt-12 p-8 bg-[#fdfaf2] rounded-3xl border-l-8 esun-border-gold shadow-sm"><div class="flex items-start gap-4"><span class="text-3xl mt-1">💡</span><div class="text-base text-gray-800"><span class="font-bold block mb-3 text-lg esun-text-green underline decoration-gold underline-offset-8">專家解析與指導</span>${item.i}</div></div><button onclick="window.nextQuest()" class="mt-10 w-full esun-bg-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all">繼續挑戰下一題</button></div>
+                </div>`;
+        };
+
+        window.handleSelect = (idx) => {
+            const correct = window.quizData[window.currentIdx].a; const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(b => b.disabled = true);
+            if (idx == correct) { window.score++; btns[idx].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); }
+            else { btns[idx].classList.add('bg-red-50', 'border-red-500', 'text-red-700'); btns[correct].classList.add('bg-green-100', 'esun-border-green', 'esun-text-green'); }
+            document.getElementById('expl-box').classList.remove('hidden');
+            document.getElementById('expl-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+
+        window.nextQuest = () => { 
+            window.currentIdx++; 
+            if (window.currentIdx < window.quizData.length) window.renderQuestion();
+            else { document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = `精進完成！本次答對 ${window.score} 題。卓越不凡，成就專業！`; } 
+        };
+
+        window.renderEditCards = () => {
+            const area = document.getElementById('editArea');
+            const qTop = document.getElementById('qCountTop');
+            if(qTop) qTop.innerText = window.tempEditData.length;
+            if(!area) return;
+            if (window.tempEditData.length === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>請導入素材開始校閱</p></div>`; return; }
+            area.innerHTML = window.tempEditData.map((d, i) => `
+                <div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-100 slide-in mb-6 relative hover:bg-white group text-left shadow-sm">
+                    <button onclick="window.tempEditData.splice(${i}, 1); window.renderEditCards();" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100">🗑️</button>
+                    <div class="flex items-center gap-4 mb-6"><span class="esun-bg-green text-white w-8 h-8 rounded-full text-xs flex items-center justify-center font-bold">${i+1}</span><input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="flex-1 font-bold bg-transparent border-b-2 border-gray-100 focus:outline-none py-2 text-gray-800 text-lg"></div>
+                    <div class="grid grid-cols-2 gap-4 pl-12">${d.o.map((o, oi) => `<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-50"><input type="radio" name="corr_${i}" ${d.a == oi ? 'checked' : ''} onchange="window.tempEditData[${i}].a=${oi}"><input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-sm w-full focus:outline-none"></div>`).join('')}</div>
+                    <div class="mt-6 pl-12 flex gap-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-100"><span class="text-2xl">💡</span><textarea oninput="window.tempEditData[${i}].i=this.value" class="w-full bg-transparent text-sm text-yellow-900 focus:outline-none resize-none leading-relaxed" rows="3">${d.i}</textarea></div>
+                </div>`).join('');
+        };
+
+        window.switchAdminCat = (cat) => {
+            window.currentCategory = cat;
+            const disp = document.getElementById('currentAdminCatDisplay');
+            if(disp) disp.innerText = `[${cat}]`;
+            document.querySelectorAll('.admin-cat-btn').forEach(btn => {
+                btn.className = btn.innerText === cat 
+                    ? "admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg"
+                    : "admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100";
+            });
+            window.tempEditData = []; window.renderEditCards();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const lBtn = document.getElementById('viewLearner'); 
+            const aBtn = document.getElementById('viewAdmin');
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            const aiGenBtn = document.getElementById('aiGenBtn');
+            const addManualBtn = document.getElementById('addManualBtn');
+            const publishBtn = document.getElementById('publishBtn');
+
+            if(lBtn && aBtn) {
+                lBtn.onclick = () => { 
+                    document.getElementById('learnerSection').classList.remove('hidden'); 
+                    document.getElementById('adminSection').classList.add('hidden'); 
+                    lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm"; 
+                    aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1"; 
+                    window.backToCategories(); 
+                };
+                aBtn.onclick = () => { 
+                    document.getElementById('learnerSection').classList.add('hidden'); 
+                    document.getElementById('adminSection').classList.remove('hidden'); 
+                    aBtn.className = "text-xs px-5 py-2 rounded-lg font-bold bg-white esun-text-green shadow-sm"; 
+                    lBtn.className = "text-xs px-5 py-2 rounded-lg font-bold text-gray-400 hover:text-gray-600 ml-1"; 
+                    window.switchAdminCat(window.currentCategory); 
+                };
+            }
+
+            if(dropZone && fileInput) {
+                dropZone.onclick = () => fileInput.click();
+                fileInput.onchange = async (e) => {
+                    const files = Array.from(e.target.files); if (files.length === 0) return;
+                    for (let file of files) {
+                        window.showToast(`讀取中: ${file.name}`);
+                        if (file.type === "application/pdf") {
+                            const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+                            let text = ""; for (let p = 1; p <= pdf.numPages; p++) { const page = await pdf.getPage(p); const content = await page.getTextContent(); text += content.items.map(s => s.str).join(" ") + "\n"; }
+                            document.getElementById('rawText').value += text + "\n";
+                        } else if (file.name.endsWith(".docx")) {
+                            const arrayBuffer = await file.arrayBuffer(); const res = await mammoth.extractRawText({ arrayBuffer });
+                            document.getElementById('rawText').value += res.value + "\n";
+                        } else { document.getElementById('rawText').value += `[ 已掛載圖像素材 ]\n`; }
+                    }
+                    window.showToast("✅ 素材載入完成");
+                };
+            }
+
+            if(aiGenBtn) {
+                aiGenBtn.onclick = async () => {
+                    const text = document.getElementById('rawText').value;
+                    if (!text) return window.showToast("請先導入法規素材。");
+                    const loader = document.getElementById('aiLoader'); loader.classList.remove('hidden');
+                    try {
+                        const prompt = `你是一位資深銀行合規專家。請根據法規內容產出 5 題嚴謹的單選練習。返回格式必須是純 JSON 數組：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。內容：\n${text}`;
+                        const res = await fetch(DEEPSEEK_ENDPOINT, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
+                            body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: prompt }] })
+                        });
+                        const json = await res.json();
+                        const clean = json.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
+                        window.tempEditData = window.tempEditData.concat(JSON.parse(clean)); window.renderEditCards();
+                        window.showToast("DeepSeek AI 提取成功！");
+                    } catch (e) { window.showToast("AI 解析失敗，請檢查 Key 或網路。"); }
+                    loader.classList.add('hidden');
+                };
+            }
+
+            if(addManualBtn) {
+                addManualBtn.onclick = () => { window.tempEditData.push({ q: "手動自定義題目", o: ["選項 A", "選項 B", "選項 C", "選項 D"], a: 0, i: "請在此輸入您的指導..." }); window.renderEditCards(); };
+            }
+
+            if(publishBtn) {
+                publishBtn.onclick = async () => {
+                    const title = document.getElementById('unitTitleInput').value; if (!title) return window.showToast("請輸入卷宗名稱。");
+                    publishBtn.disabled = true; publishBtn.innerText = "資料存儲中...";
+                    const ok = await saveExamToCloud({ category: window.currentCategory, title, questions: window.tempEditData, timestamp: Date.now() });
+                    if (ok) { 
+                        window.showToast(`✅ 【${title}】已成功發布雲端！`); 
+                        window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; window.renderEditCards(); 
+                    } else { window.showToast("❌ 雲端同步失敗，請檢查網路。"); }
+                    publishBtn.disabled = false; publishBtn.innerText = "🚀 正式存入雲端";
+                };
+            }
+            console.log("Final System Ready.");
+        });
+
+        window.showToast = (msg) => { 
+            const t = document.getElementById('toast'); 
+            if(!t) return;
+            t.innerText = msg; t.classList.remove('opacity-0'); 
+            setTimeout(() => t.classList.add('opacity-0'), 3000); 
+        };
+    </script>
+</body>
+</html>
