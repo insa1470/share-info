@@ -3,146 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>企業智慧學習平台</title>
+    <title>企業智慧學習平台 - 大陸直連版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
         :root { --esun-green: #006D41; --esun-gold: #D4AF37; }
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8faf9; color: #1a1a1a; margin: 0; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f4f7f5; color: #1a1a1a; margin: 0; -webkit-tap-highlight-color: transparent; }
         .esun-bg-green { background-color: var(--esun-green); }
         .esun-text-green { color: var(--esun-green); }
+        .esun-bg-gold { background-color: var(--esun-gold); }
         .slide-in { animation: slideIn 0.4s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-dot { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .btn-active:active { transform: scale(0.95); opacity: 0.8; }
+        .card-hover { transition: all 0.3s; cursor: pointer; }
+        .card-hover:active { transform: scale(0.97); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--esun-green); border-radius: 10px; }
+        .shadow-premium { box-shadow: 0 10px 30px -5px rgba(0, 109, 65, 0.1); }
     </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="min-h-screen pb-12">
 
     <script>
+        // 核心配置
         const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev"; 
+
+        // 全域變數
+        window.currentCategory = "TMU";
         window.allExams = []; 
         window.tempEditData = [];
-        window.currentCategory = "TMU";
+        window.quizData = [];
+        window.currentIdx = 0;
+        window.score = 0;
     </script>
 
-    <!-- 頂部導航 -->
-    <nav class="bg-white shadow-sm px-4 py-3 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 esun-bg-green rounded-lg flex items-center justify-center text-white font-bold text-xs">智庫</div>
-            <h1 class="font-bold text-gray-800 text-sm">智慧學習平台</h1>
+    <!-- 頂部導航列 -->
+    <nav class="bg-white shadow-sm px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 esun-bg-green rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg border-b-2 border-[#D4AF37]">智庫</div>
+            <div>
+                <h1 class="font-bold text-gray-800 text-base md:text-lg leading-tight">企業智慧學習平台</h1>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">China Direct Access</p>
+            </div>
         </div>
-        <div class="flex bg-gray-100 p-1 rounded-lg">
-            <button id="viewLearner" class="text-[10px] px-4 py-1.5 rounded-md font-bold transition-all bg-white esun-text-green shadow-sm btn-active">學員端</button>
-            <button id="viewAdmin" class="text-[10px] px-4 py-1.5 rounded-md font-bold transition-all text-gray-400 ml-1 btn-active">管理端</button>
+        <div class="flex bg-gray-100 p-1 rounded-xl border border-gray-200">
+            <button id="viewLearner" class="text-xs px-4 md:px-6 py-2 rounded-lg font-bold transition-all bg-white esun-text-green shadow-sm">學員端</button>
+            <button id="viewAdmin" class="text-xs px-4 md:px-6 py-2 rounded-lg font-bold transition-all text-gray-400 hover:text-gray-600 ml-1">管理端</button>
         </div>
     </nav>
 
-    <!-- 學員模式 -->
-    <div id="learnerSection" class="max-w-md mx-auto p-4 py-6 slide-in">
-        <div id="learnerHome" class="space-y-8">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-800 mb-1">知識地圖</h2>
-                <div class="w-10 h-1 bg-[#D4AF37] mx-auto rounded-full mb-2"></div>
-                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">China Direct Connection</p>
+    <!-- 主容器 -->
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        
+        <!-- [1] 學員端介面 -->
+        <div id="learnerSection" class="slide-in">
+            <!-- 科目地圖 -->
+            <div id="learnerHome" class="space-y-10">
+                <div class="text-center space-y-2">
+                    <h2 class="text-3xl font-bold text-gray-800 tracking-tight">專業知識地圖</h2>
+                    <div class="w-16 h-1 esun-bg-gold mx-auto rounded-full"></div>
+                    <p class="text-gray-400 text-xs font-medium">數據已實現大陸境內直連同步</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                    <div onclick="window.onSelectCategory('TMU')" class="card-hover bg-white p-6 md:p-8 rounded-[2rem] border-b-4 border-emerald-600 text-center shadow-premium">
+                        <div class="text-4xl md:text-5xl mb-4">📈</div><h3 class="font-bold text-gray-700 text-sm md:text-base">TMU</h3>
+                    </div>
+                    <div onclick="window.onSelectCategory('存匯')" class="card-hover bg-white p-6 md:p-8 rounded-[2rem] border-b-4 border-blue-600 text-center shadow-premium">
+                        <div class="text-4xl md:text-5xl mb-4">💰</div><h3 class="font-bold text-gray-700 text-sm md:text-base">存匯</h3>
+                    </div>
+                    <div onclick="window.onSelectCategory('授信')" class="card-hover bg-white p-6 md:p-8 rounded-[2rem] border-b-4 border-orange-500 text-center shadow-premium">
+                        <div class="text-4xl md:text-5xl mb-4">📜</div><h3 class="font-bold text-gray-700 text-sm md:text-base">授信</h3>
+                    </div>
+                    <div onclick="window.onSelectCategory('零售')" class="card-hover bg-white p-6 md:p-8 rounded-[2rem] border-b-4 border-purple-500 text-center shadow-premium">
+                        <div class="text-4xl md:text-5xl mb-4">🛍️</div><h3 class="font-bold text-gray-700 text-sm md:text-base">零售</h3>
+                    </div>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div onclick="window.onSelectCategory('TMU')" class="bg-white p-6 rounded-[2rem] border-b-4 border-emerald-600 shadow-sm btn-active text-center">
-                    <div class="text-3xl mb-2">📈</div><h3 class="font-bold text-xs text-gray-700">TMU</h3>
-                </div>
-                <div onclick="window.onSelectCategory('存匯')" class="bg-white p-6 rounded-[2rem] border-b-4 border-blue-600 shadow-sm btn-active text-center">
-                    <div class="text-3xl mb-2">💰</div><h3 class="font-bold text-xs text-gray-700">存匯</h3>
-                </div>
-                <div onclick="window.onSelectCategory('授信')" class="bg-white p-6 rounded-[2rem] border-b-4 border-orange-500 shadow-sm btn-active text-center">
-                    <div class="text-3xl mb-2">📜</div><h3 class="font-bold text-xs text-gray-700">授信</h3>
-                </div>
-                <div onclick="window.onSelectCategory('零售')" class="bg-white p-6 rounded-[2rem] border-b-4 border-purple-500 shadow-sm btn-active text-center">
-                    <div class="text-3xl mb-2">🛍️</div><h3 class="font-bold text-xs text-gray-700">零售</h3>
-                </div>
+
+            <!-- 單元清單 -->
+            <div id="unitSelectView" class="hidden space-y-6 text-center max-w-2xl mx-auto">
+                <button onclick="window.backToCategories()" class="flex items-center text-xs text-gray-400 font-bold mb-4 hover:esun-text-green mx-auto">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round"></path></svg>返回知識地圖
+                </button>
+                <div id="unitList" class="grid grid-cols-1 gap-4"></div>
             </div>
-            
-            <div class="text-center pt-8">
-                <button onclick="window.location.reload(true)" class="text-[9px] text-gray-300 underline underline-offset-4">強制同步最新雲端資料</button>
+
+            <!-- 測驗區域 -->
+            <div id="learnerQuiz" class="hidden max-w-2xl mx-auto">
+                <div class="bg-white rounded-3xl shadow-premium p-5 mb-6 flex items-center justify-between border border-white">
+                    <span id="prog-text" class="text-xs font-bold text-gray-400 font-mono">01 / 00</span>
+                    <div class="flex-1 mx-6 h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                        <div id="prog-bar" class="esun-bg-gold h-full transition-all duration-700" style="width: 0%"></div>
+                    </div>
+                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold truncate max-w-[150px]">UNIT</span>
+                </div>
+                <div id="quiz-container"></div>
+                <div id="result-screen" class="hidden bg-white rounded-[3rem] shadow-2xl p-12 text-center border border-gray-50 slide-in">
+                    <div class="text-8xl mb-8">🏆</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">學習已達標</h2>
+                    <p id="result-msg" class="text-gray-500 mb-10 leading-relaxed text-sm"></p>
+                    <button onclick="window.backToUnits()" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl active:scale-95 transition-all">返回單元列表</button>
+                </div>
             </div>
         </div>
 
-        <!-- 單元清單 -->
-        <div id="unitSelectView" class="hidden space-y-4">
-            <button onclick="window.backToCategories()" class="text-xs text-gray-400 font-bold mb-2">← 返回分類</button>
-            <div id="unitList" class="space-y-3"></div>
-        </div>
+        <!-- [2] 管理端介面 -->
+        <div id="adminSection" class="hidden slide-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左側：輸入面板 -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-7 rounded-[2rem] shadow-premium border border-white">
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-4 tracking-widest italic">Digital Archive Manager</h3>
+                        
+                        <div class="flex gap-2 mb-6">
+                            <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold esun-bg-green text-white">TMU</button>
+                            <button onclick="window.switchAdminCat('存匯')" class="admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold bg-gray-50 text-gray-400">存匯</button>
+                            <button onclick="window.switchAdminCat('授信')" class="admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold bg-gray-50 text-gray-400">授信</button>
+                            <button onclick="window.switchAdminCat('零售')" class="admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold bg-gray-50 text-gray-400">零售</button>
+                        </div>
 
-        <!-- 測驗區域 -->
-        <div id="learnerQuiz" class="hidden">
-            <div id="quiz-container"></div>
-            <div id="result-screen" class="hidden bg-white rounded-[2.5rem] shadow-xl p-10 text-center slide-in">
-                <div class="text-6xl mb-6">🏆</div>
-                <h2 class="text-xl font-bold mb-2">學習已達標</h2>
-                <p id="result-msg" class="text-xs text-gray-500 mb-8"></p>
-                <button onclick="window.backToUnits()" class="w-full esun-bg-green text-white font-bold py-4 rounded-2xl shadow-lg btn-active">回單元清單</button>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-400 block mb-1">1. 定義卷宗名稱</label>
+                                <input type="text" id="unitTitleInput" class="w-full p-4 border border-gray-100 rounded-2xl text-sm font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#006D41]" placeholder="例如：2024 外管新規重點">
+                            </div>
+                            
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-400 block mb-1">2. 導入學習素材</label>
+                                <div id="dropZone" class="border-2 border-dashed border-gray-200 rounded-[1.5rem] p-8 text-center cursor-pointer hover:bg-green-50 group transition-all mb-4">
+                                    <div class="text-4xl mb-2">📂</div>
+                                    <p class="text-xs text-gray-500 font-bold leading-relaxed uppercase">點擊導入 PDF/Word/圖片</p>
+                                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.jpg,.jpeg,.png" multiple>
+                                </div>
+                                <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs focus:outline-none shadow-inner" placeholder="解析內容將顯示在此..."></textarea>
+                            </div>
+
+                            <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-95 active:scale-95 transition-all">✨ 啟動 AI 智能出題</button>
+                            <button id="addManualBtn" class="w-full mt-3 bg-white esun-text-green border border-emerald-100 font-bold py-5 rounded-2xl shadow-sm hover:bg-emerald-50 active:scale-95 transition-all text-sm">✍️ 手動專家出題</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側：校閱面板 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-white min-h-[700px] flex flex-col relative">
+                        <div class="flex justify-between items-center mb-8 pb-6 border-b border-gray-50">
+                            <h3 class="font-bold text-gray-800 text-xl flex items-center">
+                                <span id="currentAdminCatDisplay" class="esun-text-green mr-2 font-mono uppercase">[TMU]</span> 卷宗校閱
+                            </h3>
+                            <button id="publishBtn" class="bg-[#D4AF37] text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all">🚀 正式發布雲端</button>
+                        </div>
+                        
+                        <div id="aiLoader" class="hidden absolute inset-0 bg-white bg-opacity-95 z-20 flex flex-col items-center justify-center rounded-[2rem]">
+                            <div class="flex gap-3 mb-4"><div class="w-4 h-4 esun-bg-green rounded-full loading-dot"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div></div>
+                            <p class="text-sm text-gray-400 font-bold uppercase tracking-widest font-mono">DeepSeek AI Scanning...</p>
+                        </div>
+
+                        <div id="editArea" class="space-y-8 flex-1 overflow-y-auto max-h-[650px] pr-4 text-left">
+                            <div class="text-center py-40 text-gray-200 italic flex flex-col items-center">
+                                <div class="text-6xl mb-4">📥</div>
+                                <p>請導入素材或定義名稱後開始校閱</p>
+                                <p class="text-[10px] mt-2 font-bold uppercase tracking-widest">Waiting for data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 管理端 -->
-    <div id="adminSection" class="hidden p-4 max-w-md mx-auto slide-in">
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6">
-            <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-4 tracking-widest italic">Management Center</h3>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold esun-bg-green text-white">TMU</button>
-                <button onclick="window.switchAdminCat('存匯')" class="admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold bg-gray-50 text-gray-400">存匯</button>
-                <button onclick="window.switchAdminCat('授信')" class="admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold bg-gray-50 text-gray-400">授信</button>
-                <button onclick="window.switchAdminCat('零售')" class="admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold bg-gray-50 text-gray-400">零售</button>
-            </div>
-            <input type="text" id="unitTitleInput" class="w-full p-3 mb-4 border border-gray-100 rounded-xl text-sm font-bold bg-gray-50 focus:outline-none" placeholder="輸入卷宗名稱">
-            <textarea id="rawText" class="w-full h-24 p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs mb-4 focus:outline-none" placeholder="貼入法規文字..."></textarea>
-            <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-4 rounded-2xl shadow-md btn-active mb-3">✨ 啟動 AI 智能出題</button>
-            <button id="publishBtn" class="w-full bg-[#D4AF37] text-white font-bold py-4 rounded-2xl shadow-md btn-active">🚀 發布至雲端金庫</button>
-        </div>
-        <div id="aiLoader" class="hidden py-10 text-center"><div class="flex justify-center gap-2 mb-2"><div class="w-2 h-2 esun-bg-green rounded-full loading-dot"></div><div class="w-2 h-2 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div><div class="w-2 h-2 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div></div><p class="text-[10px] text-gray-400">AI 分析中...</p></div>
-        <div id="editArea" class="space-y-4 pb-24"></div>
-    </div>
-
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-[10px] font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100] whitespace-nowrap"></div>
+    <!-- 提示框 -->
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-10 py-5 rounded-[1.5rem] text-xs font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100] border border-gray-700 whitespace-nowrap"></div>
 
     <script type="module">
-        const getUrl = (p) => CLOUDFLARE_WORKER_API.replace(/\/$/, "") + p;
+        const getUrl = (path) => CLOUDFLARE_WORKER_API.replace(/\/$/, "") + path;
 
-        // 🌟 核心數據抓取
-        async function fetchCloud() {
+        // --- 核心連線邏輯 ---
+        async function fetchExams() {
             try {
-                // 加入亂數參數防止手機瀏覽器抓取快取
                 const res = await fetch(getUrl(`/getExams?t=${Date.now()}`), { cache: 'no-store' });
-                if(!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || "伺服器回應錯誤");
-                }
-                const data = await res.json();
-                console.log("Fetched Data:", data);
-                return data;
+                if(!res.ok) throw new Error("Worker Connection Failed");
+                return await res.json();
             } catch (e) {
-                window.showToast("❌ 連線異常: " + e.message);
+                window.showToast("❌ 雲端連線失敗: " + e.message);
                 return [];
             }
         }
 
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
+        window.showToast = (msg) => { 
+            const t = document.getElementById('toast'); 
             if(!t) return;
-            t.innerText = msg; t.classList.remove('opacity-0');
-            setTimeout(() => t.classList.add('opacity-0'), 5000);
+            t.innerText = msg; t.classList.remove('opacity-0', 'translate-y-4'); 
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-4'), 4000); 
         };
 
+        // --- 學員端 UI ---
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat;
             document.getElementById('learnerHome').classList.add('hidden');
             document.getElementById('unitSelectView').classList.remove('hidden');
             window.showToast(`🔍 正在同步 ${cat} 雲端數據...`);
-            window.allExams = await fetchCloud();
+            window.allExams = await fetchExams();
             window.renderUnitList();
         };
 
@@ -150,13 +214,13 @@
             const list = document.getElementById('unitList');
             const filtered = (window.allExams || []).filter(e => e.category === window.currentCategory);
             if (filtered.length === 0) { 
-                list.innerHTML = `<div class="py-20 text-center text-gray-300 italic text-xs">此分組目前尚無發布考卷。<br><br>請確認管理端是否已「發布至雲端」</div>`; 
+                list.innerHTML = `<div class="py-20 text-center text-gray-300 italic text-sm">此分組目前尚無發布考卷。<br><br><span class="text-[10px] font-bold uppercase">Please use admin panel to publish</span></div>`; 
                 return; 
             }
             list.innerHTML = filtered.map(u => `
-                <div onclick="window.startExam('${u.id}')" class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-50 flex justify-between items-center btn-active">
-                    <div><h4 class="font-bold text-gray-700 text-sm">${u.title}</h4><span class="text-[9px] text-gray-400">${u.questions.length} 題案例練習</span></div>
-                    <div class="text-emerald-500 text-lg">▶</div>
+                <div onclick="window.startExam('${u.id}')" class="bg-white p-6 rounded-[2rem] shadow-premium border border-white flex justify-between items-center card-hover text-left">
+                    <div><h4 class="font-bold text-gray-700 text-base mb-1">${u.title}</h4><span class="text-[10px] bg-gray-50 text-gray-400 px-3 py-1 rounded-full font-bold uppercase">${u.questions.length} 案例練習</span></div>
+                    <div class="text-emerald-500 text-xl font-bold">▶</div>
                 </div>`).join('');
         };
 
@@ -166,6 +230,7 @@
             window.quizData = ex.questions; window.currentIdx = 0; window.score = 0;
             document.getElementById('unitSelectView').classList.add('hidden');
             document.getElementById('learnerQuiz').classList.remove('hidden');
+            document.getElementById('unit-badge').innerText = ex.title;
             window.renderQuestion();
         };
 
@@ -175,106 +240,137 @@
         window.renderQuestion = () => {
             const container = document.getElementById('quiz-container');
             const item = window.quizData[window.currentIdx]; if(!item) return;
+            document.getElementById('prog-text').innerText = `${(window.currentIdx + 1).toString().padStart(2, '0')} / ${window.quizData.length.toString().padStart(2, '0')}`;
+            document.getElementById('prog-bar').style.width = `${((window.currentIdx + 1) / window.quizData.length) * 100}%`;
             container.innerHTML = `
-                <div class="bg-white rounded-[2rem] shadow-sm p-6 mb-4 slide-in border border-gray-50 text-left">
-                    <span class="text-[9px] font-bold text-gray-300 uppercase tracking-widest font-mono">Question ${window.currentIdx + 1}</span>
-                    <h3 class="text-lg font-bold text-gray-800 leading-snug mt-1 mb-6">${item.q}</h3>
-                    <div class="space-y-3">
-                        ${item.o.map((opt, i) => `<button onclick="window.handleSelect(${i})" class="quiz-btn w-full text-left p-4 rounded-2xl border border-gray-100 text-xs font-medium text-gray-600 bg-gray-50 btn-active">${opt}</button>`).join('')}
+                <div class="bg-white rounded-[2.5rem] shadow-premium p-8 md:p-10 mb-8 slide-in border border-white text-left">
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-800 leading-snug mb-10">${item.q}</h3>
+                    <div class="space-y-4">
+                        ${item.o.map((opt, i) => `<button onclick="window.handleSelect(${i})" class="quiz-btn w-full text-left p-6 rounded-2xl border-2 border-gray-50 hover:border-emerald-100 hover:bg-emerald-50 transition-all font-medium text-gray-700 text-sm md:text-base flex justify-between items-center group"><span>${opt}</span><div class="w-2 h-2 rounded-full esun-bg-gold opacity-0 group-hover:opacity-100 transition-all"></div></button>`).join('')}
                     </div>
-                    <div id="expl-box" class="hidden mt-6 p-5 bg-emerald-50 rounded-2xl border-l-4 border-emerald-500 shadow-inner">
-                        <p class="text-[11px] text-emerald-800 leading-relaxed"><span class="font-bold block mb-1">💡 專家解析：</span>${item.i}</p>
-                        <button onclick="window.nextQuest()" class="mt-5 w-full esun-bg-green text-white py-3 rounded-xl font-bold text-xs shadow-md">下一題</button>
+                    <div id="expl-box" class="hidden mt-10 p-8 bg-[#fdfaf2] rounded-3xl border-l-8 border-[#D4AF37] shadow-inner">
+                        <div class="flex items-start gap-4">
+                            <span class="text-3xl mt-1">💡</span>
+                            <div class="text-sm md:text-base text-gray-800"><span class="font-bold block mb-3 text-lg esun-text-green underline decoration-gold decoration-2 underline-offset-8">專家解析與指導</span>${item.i}</div>
+                        </div>
+                        <button onclick="window.nextQuest()" class="mt-10 w-full esun-bg-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all">繼續挑戰下一個案例</button>
                     </div>
                 </div>`;
         };
 
         window.handleSelect = (idx) => {
-            const correct = window.quizData[window.currentIdx].a;
-            const btns = document.querySelectorAll('.quiz-btn');
+            const correct = window.quizData[window.currentIdx].a; const btns = document.querySelectorAll('.quiz-btn');
             btns.forEach(b => b.disabled = true);
-            if(idx == correct) { window.score++; btns[idx].classList.add('bg-green-100', 'text-green-700', 'border-green-300'); }
-            else { btns[idx].classList.add('bg-red-50', 'text-red-700', 'border-red-200'); btns[correct].classList.add('bg-green-50', 'text-green-700'); }
+            if (idx == correct) { window.score++; btns[idx].classList.add('bg-green-100', 'border-emerald-300', 'text-green-700'); }
+            else { btns[idx].classList.add('bg-red-50', 'border-red-500', 'text-red-700'); btns[correct].classList.add('bg-green-100', 'border-emerald-300', 'text-green-700'); }
             document.getElementById('expl-box').classList.remove('hidden');
         };
 
-        window.nextQuest = () => {
-            window.currentIdx++;
-            if(window.currentIdx < window.quizData.length) window.renderQuestion();
-            else { document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = `本次答對 ${window.score} 題。卓越不凡！`; }
+        window.nextQuest = () => { 
+            window.currentIdx++; 
+            if (window.currentIdx < window.quizData.length) window.renderQuestion();
+            else { document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = `本次練習共 ${window.quizData.length} 題，答對 ${window.score} 題。卓越不凡，成就專業！`; } 
         };
 
-        // --- 管理端 ---
+        // --- 管理端 UI ---
+        window.renderEditCards = () => {
+            const area = document.getElementById('editArea');
+            if (window.tempEditData.length === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>尚未導入考題，請使用 AI 出題或手動新增</p></div>`; return; }
+            area.innerHTML = window.tempEditData.map((d, i) => `
+                <div class="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 slide-in mb-6 relative hover:bg-white transition-all text-left shadow-sm group">
+                    <button onclick="window.tempEditData.splice(${i}, 1); window.renderEditCards();" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">🗑️</button>
+                    <div class="flex items-center gap-4 mb-6"><span class="esun-bg-green text-white w-8 h-8 rounded-full text-[10px] flex items-center justify-center font-bold font-mono">#${i+1}</span><input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="flex-1 font-bold bg-transparent border-b border-gray-100 focus:outline-none py-2 text-gray-800 text-base"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-12">${d.o.map((o, oi) => `<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-inner"><input type="radio" name="corr_${i}" ${d.a == oi ? 'checked' : ''} onchange="window.tempEditData[${i}].a=${oi}"><input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-xs w-full focus:outline-none"></div>`).join('')}</div>
+                    <div class="mt-6 pl-12 flex gap-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-100"><span class="text-2xl">💡</span><textarea oninput="window.tempEditData[${i}].i=this.value" class="w-full bg-transparent text-xs text-yellow-900 focus:outline-none resize-none leading-relaxed" rows="3">${d.i}</textarea></div>
+                </div>`).join('');
+        };
+
+        window.switchAdminCat = (cat) => {
+            window.currentCategory = cat;
+            const disp = document.getElementById('currentAdminCatDisplay');
+            if(disp) disp.innerText = `[${cat}]`;
+            document.querySelectorAll('.admin-cat-btn').forEach(btn => {
+                btn.className = btn.innerText === cat ? "admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold esun-bg-green text-white shadow-lg" : "admin-cat-btn flex-1 py-2 rounded-xl text-xs font-bold bg-gray-50 text-gray-400";
+            });
+            window.tempEditData = []; window.renderEditCards();
+        };
+
+        // --- 初始化事件綁定 ---
         document.addEventListener('DOMContentLoaded', () => {
             const lBtn = document.getElementById('viewLearner'); 
             const aBtn = document.getElementById('viewAdmin');
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
             const aiGenBtn = document.getElementById('aiGenBtn');
+            const addManualBtn = document.getElementById('addManualBtn');
             const publishBtn = document.getElementById('publishBtn');
 
             lBtn.onclick = () => { 
                 document.getElementById('learnerSection').classList.remove('hidden'); 
                 document.getElementById('adminSection').classList.add('hidden'); 
-                lBtn.className = "text-[10px] px-4 py-1.5 rounded-md font-bold transition-all bg-white esun-text-green shadow-sm"; 
-                aBtn.className = "text-[10px] px-4 py-1.5 rounded-md font-bold transition-all text-gray-400"; 
+                lBtn.className = "text-xs px-6 py-2 rounded-lg font-bold transition-all bg-white esun-text-green shadow-sm"; 
+                aBtn.className = "text-xs px-6 py-2 rounded-lg font-bold transition-all text-gray-400"; 
                 window.backToCategories(); 
             };
             aBtn.onclick = () => { 
                 document.getElementById('learnerSection').classList.add('hidden'); 
                 document.getElementById('adminSection').classList.remove('hidden'); 
-                aBtn.className = "text-[10px] px-4 py-1.5 rounded-md font-bold transition-all bg-white esun-text-green shadow-sm"; 
-                lBtn.className = "text-[10px] px-4 py-1.5 rounded-md font-bold transition-all text-gray-400"; 
-                window.switchAdminCat(window.currentCategory);
+                aBtn.className = "text-xs px-6 py-2 rounded-lg font-bold transition-all bg-white esun-text-green shadow-sm"; 
+                lBtn.className = "text-xs px-6 py-2 rounded-lg font-bold transition-all text-gray-400"; 
+                window.switchAdminCat(window.currentCategory); 
+            };
+
+            dropZone.onclick = () => fileInput.click();
+            fileInput.onchange = async (e) => {
+                const files = Array.from(e.target.files); if (files.length === 0) return;
+                for (let file of files) {
+                    window.showToast(`讀取素材: ${file.name}`);
+                    if (file.type === "application/pdf") {
+                        const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+                        let text = ""; for (let p = 1; p <= pdf.numPages; p++) { const page = await pdf.getPage(p); const content = await page.getTextContent(); text += content.items.map(s => s.str).join(" ") + "\n"; }
+                        document.getElementById('rawText').value += text + "\n";
+                    } else if (file.name.endsWith(".docx")) {
+                        const arrayBuffer = await file.arrayBuffer(); const res = await mammoth.extractRawText({ arrayBuffer });
+                        document.getElementById('rawText').value += res.value + "\n";
+                    } else { document.getElementById('rawText').value += `[ 已掛載圖像素材: ${file.name} ]\n`; }
+                }
+                window.showToast("✅ 素材載入成功");
             };
 
             aiGenBtn.onclick = async () => {
-                const text = document.getElementById('rawText').value; if(!text) return window.showToast("請貼入素材");
+                const text = document.getElementById('rawText').value;
+                if (!text) return window.showToast("請先導入法規素材。");
                 const loader = document.getElementById('aiLoader'); loader.classList.remove('hidden');
                 try {
-                    const prompt = `你是一位銀行專家。請產出5題單選練習。格式：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。內容：\n${text}`;
-                    const res = await fetch(getUrl("/aiProxy"), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({prompt}) });
-                    const result = await res.json();
-                    const cleanJson = result.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
-                    window.tempEditData = window.tempEditData.concat(JSON.parse(cleanJson));
-                    renderEdit(); window.showToast("✅ AI 提取考題成功");
-                } catch(e) { window.showToast("❌ AI 解析失敗"); }
+                    const prompt = `你是一位資深銀行合規專家。請根據法規內容產出 5 題單選練習。格式：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。法規內容：\n${text}`;
+                    const res = await fetch(getUrl("/aiProxy"), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ prompt: prompt }) });
+                    if (!res.ok) throw new Error("Worker AI 通訊失敗");
+                    const aiResult = await res.json();
+                    const jsonContent = aiResult.choices[0].message.content;
+                    const cleanJson = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
+                    window.tempEditData = window.tempEditData.concat(JSON.parse(cleanJson)); 
+                    window.renderEditCards();
+                    window.showToast("✅ DeepSeek AI 提取成功！");
+                } catch (e) { window.showToast("❌ 錯誤: " + e.message); }
                 loader.classList.add('hidden');
             };
 
-            publishBtn.onclick = async () => {
-                const title = document.getElementById('unitTitleInput').value; if(!title) return window.showToast("請輸入考卷名稱");
-                if(window.tempEditData.length === 0) return window.showToast("請先生成題目");
-                publishBtn.disabled = true;
-                try {
-                    const res = await fetch(getUrl("/saveExam"), { 
-                        method: 'POST', 
-                        headers: {'Content-Type':'application/json'}, 
-                        body: JSON.stringify({ category: window.currentCategory, title, questions: window.tempEditData }) 
-                    });
-                    if(res.ok) { window.showToast("✅ 已成功鎖入雲端保險箱！"); window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; renderEdit(); }
-                    else throw new Error("同步失敗");
-                } catch(e) { window.showToast("❌ 雲端同步失敗: " + e.message); }
-                publishBtn.disabled = false;
-            };
+            addManualBtn.onclick = () => { window.tempEditData.push({ q: "自定義專業題目", o: ["選項 A", "選項 B", "選項 C", "選項 D"], a: 0, i: "在此輸入您的指導解析..." }); window.renderEditCards(); };
 
-            function renderEdit() {
-                const area = document.getElementById('editArea');
-                if(window.tempEditData.length === 0) { area.innerHTML = ""; return; }
-                area.innerHTML = window.tempEditData.map((d, i) => `
-                    <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm text-left">
-                        <div class="flex justify-between mb-4"><span class="text-[9px] font-bold text-gray-300">EDITING #${i+1}</span><button onclick="window.tempEditData.splice(${i}, 1); document.dispatchEvent(new Event('re-edit'));" class="text-xs">🗑️</button></div>
-                        <input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="w-full font-bold text-xs bg-transparent border-b border-gray-50 py-2 mb-4">
-                        <div class="grid grid-cols-1 gap-2">${d.o.map((o, oi) => `<div class="flex items-center gap-2"><input type="radio" name="r_${i}" ${d.a==oi?'checked':''} onchange="window.tempEditData[${i}].a=${oi}"><input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-[10px] flex-1 bg-gray-50 p-2 rounded-xl"></div>`).join('')}</div>
-                    </div>`).join('');
-            }
-            document.addEventListener('re-edit', renderEdit);
+            publishBtn.onclick = async () => {
+                const title = document.getElementById('unitTitleInput').value; if (!title) return window.showToast("請先定義卷宗名稱。");
+                if (window.tempEditData.length === 0) return window.showToast("尚未生成任何題目。");
+                publishBtn.disabled = true; publishBtn.innerText = "同步至雲端...";
+                try {
+                    const res = await fetch(getUrl("/saveExam"), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ category: window.currentCategory, title, questions: window.tempEditData, timestamp: Date.now() }) });
+                    if (res.ok) { 
+                        window.showToast(`✅ 【${title}】已存入雲端保險箱！`); 
+                        window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; window.renderEditCards(); 
+                    } else throw new Error("資料傳輸錯誤");
+                } catch (e) { window.showToast("❌ 雲端同步失敗"); }
+                publishBtn.disabled = false; publishBtn.innerText = "🚀 正式發布雲端";
+            };
         });
-        
-        window.switchAdminCat = (cat) => {
-            window.currentCategory = cat;
-            document.querySelectorAll('.admin-cat-btn').forEach(b => {
-                b.className = b.innerText === cat ? "admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold esun-bg-green text-white" : "admin-cat-btn px-4 py-1.5 rounded-full text-[10px] font-bold bg-gray-50 text-gray-400";
-            });
-        };
     </script>
 </body>
 </html>
