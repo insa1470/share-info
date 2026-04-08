@@ -30,7 +30,6 @@
 <body class="min-h-screen pb-12">
 
     <script>
-        // 🚀 行長，請確保這裡是您的 Worker 網址
         const CLOUDFLARE_WORKER_API = "https://bank-study-api.insa-eco.workers.dev"; 
 
         window.currentCategory = "TMU";
@@ -44,13 +43,13 @@
     <!-- 頂部導航 -->
     <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 esun-bg-green rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg border-b-2 border-[#D4AF37]">智庫</div>
+            <div class="w-10 h-10 esun-bg-green rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">智庫</div>
             <div>
-                <h1 class="font-bold text-gray-800 text-lg leading-tight tracking-tight">企業智慧學習平台</h1>
+                <h1 class="font-bold text-gray-800 text-lg leading-tight">企業智慧學習平台</h1>
                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">China Direct Access Edition</p>
             </div>
         </div>
-        <div class="flex bg-gray-50 p-1 rounded-xl border border-gray-100 shadow-inner">
+        <div class="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
             <button id="viewLearner" class="text-xs px-5 py-2 rounded-lg font-bold transition-all bg-white esun-text-green shadow-sm">學員端</button>
             <button id="viewAdmin" class="text-xs px-5 py-2 rounded-lg font-bold transition-all text-gray-400 hover:text-gray-600 ml-1">管理端</button>
         </div>
@@ -90,7 +89,7 @@
             <div class="bg-white rounded-3xl shadow-sm p-6 mb-8 border border-gray-100">
                 <div class="flex justify-between items-center mb-4">
                     <span id="prog-text" class="text-xs font-bold text-gray-400 font-mono">01 / 00</span>
-                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold truncate max-w-[200px]">UNIT</span>
+                    <span id="unit-badge" class="text-[10px] esun-bg-green text-white px-3 py-1 rounded-full font-bold truncate">UNIT</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden shadow-inner">
                     <div id="prog-bar" class="esun-bg-gold h-full transition-all duration-700" style="width: 0%"></div>
@@ -110,7 +109,7 @@
     <div id="adminSection" class="hidden max-w-6xl mx-auto p-4 py-8 slide-in">
         <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
             <div>
-                <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 italic font-mono tracking-widest">Digital Archive Manager</h3>
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 italic font-mono tracking-widest">Manager Console</h3>
                 <div class="flex gap-2">
                     <button onclick="window.switchAdminCat('TMU')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold esun-bg-green text-white shadow-lg">TMU</button>
                     <button onclick="window.switchAdminCat('存匯')" class="admin-cat-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-400 hover:bg-gray-100">存匯</button>
@@ -119,23 +118,23 @@
                 </div>
             </div>
             <div class="text-right hidden md:block border-l pl-8">
-                <p class="text-xs font-bold text-blue-500 mb-1 tracking-tighter">● EDGE PROXY ACTIVE</p>
+                <p class="text-xs font-bold text-blue-500 mb-1 tracking-tighter font-mono">● PROXY SYNC ACTIVE</p>
                 <span class="block text-2xl font-bold text-gray-800" id="qCountTop">0</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1 space-y-6 text-left">
-                <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase">1. 定義卷宗名稱</h3>
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 text-left">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase">1. 定義名稱</h3>
                     <input type="text" id="unitTitleInput" class="w-full p-4 mb-6 border border-gray-100 rounded-2xl text-base font-bold bg-gray-50 focus:outline-none" placeholder="例如：2024 外管新規">
                     <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase">2. 導入學習素材</h3>
                     <div id="dropZone" class="border-2 border-dashed border-gray-200 rounded-[1.5rem] p-8 text-center cursor-pointer hover:bg-green-50 mb-6 group transition-all">
-                        <div class="text-4xl mb-3">📂</div>
-                        <p class="text-xs text-gray-500 font-bold leading-relaxed uppercase">點擊導入 PDF / Word / 圖片</p>
+                        <div class="text-4xl mb-2">📂</div>
+                        <p class="text-xs text-gray-500 font-bold leading-relaxed uppercase">導入 PDF / Word / 圖片</p>
                         <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.jpg,.jpeg,.png" multiple>
                     </div>
-                    <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs mb-6 focus:outline-none shadow-inner" placeholder="解析後的文本會在此累積..."></textarea>
+                    <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs mb-6 focus:outline-none shadow-inner" placeholder="解析內容將顯示在此..."></textarea>
                     <button id="aiGenBtn" class="w-full esun-bg-green text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-95 active:scale-95 transition-all">✨ 啟動 AI 智能出題</button>
                     <button id="addManualBtn" class="w-full mt-3 bg-white esun-text-green border border-emerald-100 font-bold py-5 rounded-2xl shadow-sm hover:bg-emerald-50 active:scale-95 transition-all">✍️ 手動專家出題</button>
                 </div>
@@ -144,11 +143,11 @@
                 <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 min-h-[700px] flex flex-col relative text-left">
                     <div class="flex justify-between items-center mb-8 pb-6 border-b">
                         <h3 class="font-bold text-gray-800 text-xl flex items-center"><span id="currentAdminCatDisplay" class="esun-text-green mr-2 font-mono uppercase">[TMU]</span> 卷宗校閱</h3>
-                        <button id="publishBtn" class="esun-bg-gold text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl active:scale-95">🚀 正式存入雲端</button>
+                        <button id="publishBtn" class="esun-bg-gold text-white px-10 py-3 rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all">🚀 正式存入雲端</button>
                     </div>
                     <div id="aiLoader" class="hidden absolute inset-0 bg-white bg-opacity-95 z-20 flex flex-col items-center justify-center rounded-[2rem]">
                         <div class="flex gap-3 mb-4"><div class="w-4 h-4 esun-bg-green rounded-full loading-dot"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.2s"></div><div class="w-4 h-4 esun-bg-green rounded-full loading-dot" style="animation-delay: 0.4s"></div></div>
-                        <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">DeepSeek AI 正在提取知識...</p>
+                        <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">AI 正在深度掃描法規...</p>
                     </div>
                     <div id="editArea" class="space-y-8 flex-1 overflow-y-auto max-h-[650px] pr-4">
                         <div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>請導入素材開始校閱</p></div>
@@ -163,7 +162,7 @@
     <script type="module">
         const getFullUrl = (path) => CLOUDFLARE_WORKER_API.replace(/\/$/, "") + path;
 
-        // --- 資料連線 ---
+        // --- 核心同步與出題邏輯 ---
         async function fetchCloudExams() {
             try {
                 const res = await fetch(getFullUrl("/getExams"));
@@ -182,19 +181,19 @@
             } catch (e) { return false; }
         }
 
-        // --- UI 控制 ---
+        // --- UI 控制與介面切換 ---
         window.showToast = (msg) => { 
             const t = document.getElementById('toast'); 
             if(!t) return;
             t.innerText = msg; t.classList.remove('opacity-0'); 
-            setTimeout(() => t.classList.add('opacity-0'), 4000); 
+            setTimeout(() => t.classList.add('opacity-0'), 4500); 
         };
 
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat;
             document.getElementById('learnerHome').classList.add('hidden');
             document.getElementById('unitSelectView').classList.remove('hidden');
-            window.showToast(`正在從雲端保險箱提取資料...`);
+            window.showToast(`正在連線雲端智庫...`);
             window.allExams = await fetchCloudExams();
             window.renderUnitSelect();
         };
@@ -202,7 +201,7 @@
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList');
             const units = (window.allExams || []).filter(e => e.category === window.currentCategory);
-            if (units.length === 0) { list.innerHTML = `<div class="col-span-full py-20 text-gray-300 italic text-center">此分組目前尚無發布卷宗。</div>`; return; }
+            if (units.length === 0) { list.innerHTML = `<div class="col-span-full py-20 text-gray-300 italic text-center">尚未發布單元。</div>`; return; }
             list.innerHTML = units.map(u => `
                 <div onclick="window.startExam('${u.id}')" class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-50 card-hover text-left group">
                     <h4 class="font-bold text-gray-700 text-lg mb-2 group-hover:esun-text-green">${u.title}</h4>
@@ -247,17 +246,16 @@
         window.nextQuest = () => { 
             window.currentIdx++; 
             if (window.currentIdx < window.quizData.length) window.renderQuestion();
-            else { document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = `本次練習共 ${window.quizData.length} 題，答對 ${window.score} 題。卓越不凡！`; } 
+            else { document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = `本卷完畢！答對 ${window.score} 題。卓越不凡！`; } 
         };
 
-        // --- 管理後台邏輯 ---
         window.renderEditCards = () => {
             const area = document.getElementById('editArea');
             document.getElementById('qCountTop').innerText = window.tempEditData.length;
-            if (window.tempEditData.length === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>尚未導入考題，請使用 AI 出題或手動新增</p></div>`; return; }
+            if (window.tempEditData.length === 0) { area.innerHTML = `<div class="text-center py-40 text-gray-200 italic flex flex-col items-center"><div class="text-6xl mb-4">📥</div><p>尚未導入考題</p></div>`; return; }
             area.innerHTML = window.tempEditData.map((d, i) => `
                 <div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-100 slide-in mb-6 relative hover:bg-white group text-left shadow-sm">
-                    <button onclick="window.tempEditData.splice(${i}, 1); window.renderEditCards();" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100">🗑️</button>
+                    <button onclick="window.tempEditData.splice(${i}, 1); window.renderEditCards();" class="absolute top-8 right-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
                     <div class="flex items-center gap-4 mb-6"><span class="esun-bg-green text-white w-8 h-8 rounded-full text-xs flex items-center justify-center font-bold">${i+1}</span><input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="flex-1 font-bold bg-transparent border-b-2 border-gray-100 focus:outline-none py-2 text-gray-800 text-lg"></div>
                     <div class="grid grid-cols-2 gap-4 pl-12">${d.o.map((o, oi) => `<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-50"><input type="radio" name="corr_${i}" ${d.a == oi ? 'checked' : ''} onchange="window.tempEditData[${i}].a=${oi}"><input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" class="text-sm w-full focus:outline-none"></div>`).join('')}</div>
                     <div class="mt-6 pl-12 flex gap-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-100"><span class="text-2xl">💡</span><textarea oninput="window.tempEditData[${i}].i=this.value" class="w-full bg-transparent text-sm text-yellow-900 focus:outline-none resize-none leading-relaxed" rows="3">${d.i}</textarea></div>
@@ -306,11 +304,12 @@
 
             aiGenBtn.onclick = async () => {
                 const text = document.getElementById('rawText').value;
-                if (!text) return window.showToast("請先導入法規素材。");
+                if (!text) return window.showToast("請先導入法規素材內容。");
                 const loader = document.getElementById('aiLoader'); loader.classList.remove('hidden');
                 try {
-                    const prompt = `你是一位資深銀行合規專家。請根據內容產出 5 題單選練習。格式：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。內容：\n${text}`;
-                    // ✨ 核心修正：呼叫您自己的 Worker Proxy
+                    const prompt = `你是一位資深銀行合規專家。請根據法規內容產出 5 題單選練習。返回格式必須是純 JSON 數組，禁止任何 Markdown 標籤：[{"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"}]。法規內容：\n${text}`;
+                    
+                    // ✨ 核心修正：透過自己 Worker Proxy 呼叫 AI
                     const res = await fetch(getFullUrl("/aiProxy"), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -318,8 +317,9 @@
                     });
                     
                     if (!res.ok) {
-                        const errData = await res.json();
-                        throw new Error(errData.error || "Worker 未回應");
+                        const errText = await res.text();
+                        let parsedErr; try { parsedErr = JSON.parse(errText).error; } catch(e) { parsedErr = errText; }
+                        throw new Error(parsedErr || `Worker 狀態碼: ${res.status}`);
                     }
                     
                     const aiResult = await res.json();
@@ -330,23 +330,24 @@
                     window.showToast("DeepSeek AI 提取成功！");
                 } catch (e) { 
                     window.showToast("❌ 錯誤: " + e.message);
-                    console.error(e);
+                    console.error("AI Generation Error:", e);
                 }
                 loader.classList.add('hidden');
             };
 
-            addManualBtn.onclick = () => { window.tempEditData.push({ q: "手動題目", o: ["A", "B", "C", "D"], a: 0, i: "在此輸入專家的指導..." }); window.renderEditCards(); };
+            addManualBtn.onclick = () => { window.tempEditData.push({ q: "手動自定義題目", o: ["選項 A", "選項 B", "選項 C", "選項 D"], a: 0, i: "在此輸入您的專家解析指導..." }); window.renderEditCards(); };
 
             publishBtn.onclick = async () => {
-                const title = document.getElementById('unitTitleInput').value; if (!title) return window.showToast("請輸入卷宗名稱。");
+                const title = document.getElementById('unitTitleInput').value; if (!title) return window.showToast("請先定義卷宗名稱。");
                 publishBtn.disabled = true;
                 const ok = await saveExamToCloud({ category: window.currentCategory, title, questions: window.tempEditData, timestamp: Date.now() });
                 if (ok) { 
-                    window.showToast(`✅ 【${title}】發布成功！`); 
+                    window.showToast(`✅ 【${title}】已成功同步至雲端！`); 
                     window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; window.renderEditCards(); 
-                } else { window.showToast("❌ 雲端同步失敗。"); }
+                } else { window.showToast("❌ 雲端同步失敗，請檢查網路。"); }
                 publishBtn.disabled = false;
             };
+            console.log("China Direct System Initialization Complete.");
         });
     </script>
 </body>
