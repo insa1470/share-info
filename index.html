@@ -25,15 +25,9 @@
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .count-btn-active { border-color: var(--brand-green) !important; background-color: #f0fdf4 !important; color: var(--brand-green) !important; }
         
-        /* 🚀 核心優化：單屏測驗容器高度鎖定，確保不需滑動 */
-        .one-screen-quiz {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 120px);
-            justify-content: space-between;
-        }
+        .one-screen-quiz { display: flex; flex-direction: column; height: calc(100vh - 120px); justify-content: space-between; }
         .scroll-internal { max-height: 120px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .ai-progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ai-progress-bar { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
         .admin-tab-active { color: var(--brand-green); border-bottom: 3px solid var(--brand-green); }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -43,7 +37,6 @@
 <body class="min-h-screen">
 
     <script>
-        // 🚀 自動辨識來源，確保在大陸境內 deepmystic.net 通訊無阻
         const API_BASE = window.location.origin + "/api"; 
         window.allExams = []; window.allRecords = []; window.tempEditData = []; window.quizData = [];
         window.currentCategory = "專業"; window.currentIdx = 0; window.score = 0;
@@ -53,13 +46,12 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
 
-    <!-- 頂部導航 -->
     <nav class="bg-white shadow-sm px-5 py-3 flex justify-between items-center sticky top-0 z-50 border-b-2 border-[#D4AF37]">
         <div class="flex flex-col text-left">
             <h1 class="font-bold text-gray-800 text-base tracking-tight">同仁，你好！</h1>
             <div class="flex items-center">
                 <div id="netStatus" class="status-dot bg-gray-300"></div>
-                <p id="netStatusText" class="text-[7px] text-gray-400 uppercase font-bold tracking-tighter">Syncing...</p>
+                <p id="netStatusText" class="text-[7px] text-gray-400 uppercase font-bold">Syncing...</p>
             </div>
         </div>
         <button id="adminToggle" class="text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 card-active">管理員登入</button>
@@ -67,9 +59,8 @@
 
     <div class="max-w-md mx-auto px-5 pt-4 text-center">
         
-        <!-- [1] 學員端模式 (同仁端) -->
+        <!-- [1] 學員端模式 -->
         <div id="learnerSection" class="slide-in">
-            <!-- 核心首頁 -->
             <div id="learnerHome" class="space-y-10 pt-4">
                 <div class="space-y-2">
                     <h2 class="text-2xl font-bold text-gray-800">充實！提升！</h2>
@@ -89,13 +80,11 @@
                 </div>
             </div>
 
-            <!-- 單元列表 (每頁限 5 卷) -->
             <div id="unitSelectView" class="hidden space-y-4">
                 <button onclick="window.backToCategories()" class="text-[10px] text-gray-400 font-bold py-2 mx-auto flex items-center hover:text-brand-green">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3" stroke-linecap="round"></path></svg>返回目錄
                 </button>
                 <div id="unitList" class="space-y-3"></div>
-                <!-- 分頁導航 -->
                 <div id="unitPagination" class="flex justify-center items-center gap-8 pt-4 hidden">
                     <button id="prevUnitPage" class="p-2 text-gray-400 disabled:opacity-20"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"></path></svg></button>
                     <span id="unitPageNum" class="text-xs font-bold text-gray-400 font-mono tracking-widest">1/1</span>
@@ -103,7 +92,6 @@
                 </div>
             </div>
 
-            <!-- 測驗區域 (核心：一屏模式) -->
             <div id="learnerQuiz" class="hidden text-left one-screen-quiz">
                 <div class="w-full">
                     <div class="bg-white rounded-2xl shadow-sm p-3 mb-4 flex items-center justify-between border border-gray-50">
@@ -113,7 +101,6 @@
                     </div>
                     <div id="quiz-container"></div>
                 </div>
-                <!-- 結算畫面 (百分制大字顯示) -->
                 <div id="result-screen" class="hidden bg-white rounded-[3rem] shadow-2xl p-10 text-center slide-in flex-1 flex flex-col justify-center border border-gray-50 my-4">
                     <div id="result-icon" class="text-7xl mb-4">🏆</div>
                     <h2 class="text-xl font-bold text-gray-800 mb-1">精進完成</h2>
@@ -126,7 +113,6 @@
 
         <!-- [2] 管理端介面 -->
         <div id="adminSection" class="hidden slide-in text-left">
-            <!-- 分頁標籤 -->
             <div class="flex border-b border-gray-100 mb-6 font-bold text-xs">
                 <button onclick="window.switchAdminTab('management')" id="tabMan" class="flex-1 py-4 admin-tab-active">出題與管理</button>
                 <button onclick="window.switchAdminTab('analytics')" id="tabAna" class="flex-1 py-4 text-gray-400">數據看板</button>
@@ -157,15 +143,9 @@
                     </div>
                 </div>
 
-                <!-- 🚀 管理者精準控制：已發佈卷宗管理 -->
-                <div class="px-2 mb-4">
-                    <h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest italic">已發佈卷宗管理 (點擊 🗑️ 移除)</h3>
-                </div>
-                <div id="publishedExamsList" class="space-y-3 pb-10">
-                    <!-- 管理列表 -->
-                </div>
+                <div class="px-2 mb-4"><h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest italic">已發佈卷宗管理</h3></div>
+                <div id="publishedExamsList" class="space-y-3 pb-10"></div>
 
-                <!-- AI 出題進度條 -->
                 <div id="aiLoader" class="hidden py-10 text-center slide-in">
                     <div class="mb-4"><p id="aiProgressPercent" class="text-4xl font-bold text-brand-green font-mono">0%</p></div>
                     <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden"><div id="aiProgressBar" class="ai-progress-bar bg-brand-green h-full w-0"></div></div>
@@ -174,30 +154,16 @@
                 <div id="editArea" class="space-y-6 pb-28"></div>
             </div>
 
-            <!-- 數據看板區域 -->
             <div id="adminAnalytics" class="hidden pb-20 space-y-4">
                 <div id="analyticsList" class="space-y-4"></div>
             </div>
         </div>
     </div>
 
-    <!-- 題數選擇彈窗 -->
-    <div id="countModal" class="hidden fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-6 text-center">
-        <div class="bg-white w-full max-w-xs rounded-[2.5rem] shadow-2xl p-8 border border-gray-50">
-            <h3 class="text-base font-bold text-gray-800 mb-6 tracking-tight">請選擇新增題數</h3>
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <button onclick="window.selectCount(5, this)" class="count-btn py-4 bg-gray-50 border rounded-2xl font-bold text-gray-500 transition-all">5 題</button>
-                <button onclick="window.selectCount(10, this)" class="count-btn py-4 bg-gray-50 border rounded-2xl font-bold text-gray-500 transition-all">10 題</button>
-            </div>
-            <div id="startActionContainer" class="hidden slide-in"><button id="executeBtn" onclick="window.executeAction()" class="w-full bg-brand-green text-white font-bold py-5 rounded-2xl shadow-xl text-sm mb-4">🚀 開始出題</button></div>
-            <button onclick="window.closeModal()" class="w-full text-xs text-gray-400 font-bold uppercase py-1">取消</button>
-        </div>
-    </div>
-
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-2xl text-[10px] font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100] border border-gray-700 text-center max-w-[85vw]"></div>
 
     <script type="module">
-        window.showToast = (msg) => { const t = document.getElementById('toast'); if(!t) return; t.innerText = msg; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 4000); };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); if(!t) return; t.innerText = msg; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 5000); };
         
         async function apiRequest(path, options = {}) {
             try {
@@ -205,7 +171,7 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || `Code ${res.status}`);
                 return data;
-            } catch (e) { window.showToast("❌ 同步異常"); return null; }
+            } catch (e) { console.error(e); window.showToast("❌ 雲端通訊失敗，請重試"); return null; }
         }
 
         async function checkConnection() {
@@ -213,10 +179,10 @@
             try {
                 const res = await fetch(API_BASE + "/getExams");
                 if (res.ok) { dot.className = "status-dot bg-green-500"; document.getElementById('netStatusText').innerText = "Online"; }
-            } catch (e) { dot.className = "status-dot bg-red-500"; document.getElementById('netStatusText').innerText = "Offline"; }
+            } catch (e) { dot.className = "status-dot bg-red-500"; document.getElementById('netStatusText').innerText = "Error"; }
         }
 
-        // --- 學員邏輯 ---
+        // 學員邏輯
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat; window.unitCurrentPage = 0;
             document.getElementById('learnerHome').classList.add('hidden');
@@ -229,7 +195,7 @@
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList'); if(!list) return;
             const filtered = (window.allExams || []).filter(e => e.category === window.currentCategory);
-            const totalPages = Math.max(1, Math.ceil(filtered.length / window.unitPageSize));
+            const totalPages = Math.ceil(filtered.length / window.unitPageSize);
             const pagedItems = filtered.slice(window.unitCurrentPage * window.unitPageSize, (window.unitCurrentPage + 1) * window.unitPageSize);
 
             if (filtered.length === 0) { list.innerHTML = `<div class="py-24 text-gray-300 italic text-xs">目前暫無更新</div>`; return; }
@@ -283,16 +249,15 @@
         window.handleSelect = (idx) => {
             const correct = window.quizData[window.currentIdx].a; const btns = document.querySelectorAll('.quiz-btn');
             btns.forEach(b => b.disabled = true);
-            const fb = document.getElementById(`fb-${idx}`); const fbc = document.getElementById(`fb-${correct}`);
             if (idx == correct) { 
                 window.score++; btns[idx].classList.add('bg-green-100', 'border-emerald-300', 'text-green-700'); 
-                if(fb){fb.innerText="⭕"; fb.classList.remove('opacity-0');}
+                if(document.getElementById(`fb-${idx}`)) { document.getElementById(`fb-${idx}`).innerText="⭕"; document.getElementById(`fb-${idx}`).classList.remove('opacity-0'); }
             } else { 
                 window.wrongIndices.push(window.currentIdx);
                 btns[idx].classList.add('bg-red-50', 'border-red-500', 'text-red-700'); 
-                if(fb){fb.innerText="❌"; fb.classList.remove('opacity-0');}
+                if(document.getElementById(`fb-${idx}`)) { document.getElementById(`fb-${idx}`).innerText="❌"; document.getElementById(`fb-${idx}`).classList.remove('opacity-0'); }
                 btns[correct].classList.add('bg-green-100', 'border-emerald-300', 'text-green-700'); 
-                if(fbc){fbc.innerText="⭕"; fbc.classList.remove('opacity-0');}
+                if(document.getElementById(`fb-${correct}`)) { document.getElementById(`fb-${correct}`).innerText="⭕"; document.getElementById(`fb-${correct}`).classList.remove('opacity-0'); }
             }
             document.getElementById('expl-box').classList.remove('hidden');
         };
@@ -317,7 +282,7 @@
             window.renderUnitSelect(); 
         };
 
-        // --- 管理端邏輯 ---
+        // 管理端邏輯
         window.switchAdminTab = (tab) => {
             window.adminTab = tab;
             document.getElementById('tabMan').className = tab === 'management' ? "flex-1 py-4 admin-tab-active" : "flex-1 py-4 text-gray-400";
@@ -330,7 +295,7 @@
 
         window.renderPublishedManagement = async () => {
             const area = document.getElementById('publishedExamsList');
-            area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse">Syncing...</div>`;
+            area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse uppercase">Syncing...</div>`;
             const data = await apiRequest("/getExams") || [];
             window.allExams = data;
             const filtered = data.filter(e => e.category === window.currentCategory);
@@ -358,7 +323,6 @@
             area.innerHTML = exams.filter(e => e.category === window.currentCategory).map(ex => {
                 const exRecs = records.filter(r => r.examId === ex.id);
                 const count = exRecs.length;
-                // 🚀 管理端平均分數計算 (百分制)
                 const avgPoints = count > 0 
                     ? (exRecs.reduce((s, c) => s + (c.score / c.total * 100), 0) / count).toFixed(1) 
                     : "0.0";
@@ -396,29 +360,58 @@
         };
 
         window.executeAiGen = async (count) => {
-            const text = document.getElementById('rawText')?.value; if (!text) return window.showToast("請提供內容素材");
+            const text = document.getElementById('rawText')?.value; if (!text) return window.showToast("請貼入素材內容");
             const loader = document.getElementById('aiLoader'); loader.classList.remove('hidden');
+            
+            // 🚀 分段回饋邏輯
             window.updateAiProgress(10, "Packing Content...");
+            await new Promise(r => setTimeout(r, 800));
+            window.updateAiProgress(30, "Connecting to Cloud Brain...");
+            
+            // 設置前端安全超時：50 秒
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                window.showToast("❌ 連線超時，AI 思考較久。建議減少題數或縮減素材後重試。");
+                loader.classList.add('hidden');
+            }, 50000);
 
-            // 🚀 核心優化：題型混合提示詞 (70% 是非, 30% 選擇)
             try {
-                const prompt = `你是一位資深銀行培訓專家，專業且幽默，善於鼓勵員工。請根據法規內容，為同仁產出 ${count} 題練習題。
+                const prompt = `你是一位資深銀行內控與培訓專家。請根據法規內容，為同仁產出 ${count} 題練習題。
 要求：
 1. 題型分佈：約 70% 為「是非題」，約 30% 為「情境選擇題」。
-2. 是非題：敘述需精煉，但避免僵化一成不變，選項固定為 ["正確", "錯誤"]。
-3. 選擇題：設為具有四個選項的單選題，需包含實務情境。
+2. 是非題：敘述需精煉，選項固定為 ["正確", "錯誤"]。
+3. 選擇題：設為具有四個選項的單選題，需包含實務櫃檯情境。
 4. 深度解析：每題皆須附上精闢的指導解析，解釋實務合規邏輯。
-格式：JSON [ {"q":"題目","o":["A","B","C","D"],"a":正確索引,"i":"解析"} ]。內容：\n${text}`;
+格式：JSON [ {"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。內容：\n${text}`;
 
-                const data = await apiRequest("/aiProxy", { method: 'POST', body: JSON.stringify({ prompt }) });
+                window.updateAiProgress(60, "AI Analyzing & Writing...");
+                
+                const data = await apiRequest("/aiProxy", { 
+                    method: 'POST', 
+                    body: JSON.stringify({ prompt }),
+                    signal: controller.signal 
+                });
+                
+                clearTimeout(timeoutId);
+
                 if (data) { 
-                    window.updateAiProgress(90, "Polishing...");
-                    const clean = data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
-                    window.tempEditData = window.tempEditData.concat(JSON.parse(clean)); window.renderEditCards(); 
-                    window.updateAiProgress(100, "Ready!"); setTimeout(() => window.showToast(`✅ AI 已產出`), 400);
+                    window.updateAiProgress(90, "Polishing Format...");
+                    let content = data.choices[0].message.content;
+                    // 強化字串清洗，防止 Markdown 標籤干擾
+                    const cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                    window.tempEditData = window.tempEditData.concat(JSON.parse(cleanJson)); 
+                    window.renderEditCards(); 
+                    window.updateAiProgress(100, "Done!"); 
+                    setTimeout(() => { window.showToast(`✅ AI 已產出`); loader.classList.add('hidden'); }, 400);
+                } else {
+                    loader.classList.add('hidden');
                 }
-            } catch (e) { window.showToast("❌ AI 通訊中斷"); }
-            loader.classList.add('hidden');
+            } catch (e) { 
+                console.error(e);
+                if (e.name !== 'AbortError') window.showToast("❌ AI 通訊異常，請稍後重試"); 
+                loader.classList.add('hidden');
+            }
         };
 
         window.renderEditCards = () => {
@@ -437,7 +430,6 @@
             document.querySelectorAll('.admin-cat-btn').forEach(btn => { btn.className = (btn.innerText.includes(cat)) ? "admin-cat-btn flex-1 py-3 rounded-xl text-xs font-bold bg-brand-green text-white shadow-lg transition-all" : "admin-cat-btn flex-1 py-3 rounded-xl text-xs font-bold bg-gray-50 text-gray-400 transition-all"; });
             window.tempEditData = []; window.renderEditCards();
             if(window.isAdminView && window.adminTab === 'management') window.renderPublishedManagement();
-            if(window.isAdminView && window.adminTab === 'analytics') window.renderAnalytics();
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -460,7 +452,7 @@
                     window.switchAdminTab('management');
                 } else {
                     adminSec.classList.add('hidden'); learnerSec.classList.remove('hidden');
-                    toggleBtn.innerText = "管理員登入"; toggleBtn.className = "text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 shadow-inner card-active";
+                    toggleBtn.innerText = "管理員登入"; toggleBtn.className = "text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 card-active";
                     window.backToCategories();
                 }
             };
