@@ -1,77 +1,130 @@
-# share-info
-知其所以然
+企業智慧學習平台：全流程部署與營運手冊
 
-TMU 智慧學習平台：全流程操作與部署總結
+適用網域：deepmystic.net | 核心引擎：DeepSeek AI | 儲存：Cloudflare KV
 
-行長，這套系統透過「前後端分離」的現代化架構，成功解決了大陸境內直連、AI 智能自動化與數據雲端同步三大難題。以下是完整的整理說明：
+壹、 系統架構概觀 (The Architecture)
 
-一、 核心零件：系統的三大支柱
+本系統採用「前後端全整合」架構，所有零件均存放於您的專屬網域內，確保在大陸境內擁有最高的連線優先權。
 
-這套系統由三個「零件」組成，它們各司其職，共同運作：
+門牌 (網域)：deepmystic.net (Cloudflare 託管)。
 
-前端介面 (The Storefront)：
+店面 (前端)：index.html (存放於 GitHub，透過 Cloudflare Pages 發布)。
 
-載體：GitHub + Cloudflare Pages。
+大腦 (後端)：functions/api/[[path]].js (Pages Functions，負責處理 AI 與數據)。
 
-作用：這是同仁看到的手機網頁，負責顯示題目、紀錄答案與展示精美的視覺介面。
+金庫 (資料庫)：Cloudflare KV (STUDY_STORAGE)，存放發布後的考題。
 
-AI 大腦 (The Brain)：
+貳、 檔案結構與 GitHub 管理 (GitHub Setup)
 
-載體：DeepSeek (深度求索)。
+GitHub 是系統的原始碼倉庫。請確保您的儲存庫 (Repo) 結構嚴格遵守以下路徑：
 
-作用：負責閱讀您導入的 PDF 或圖片，並在幾秒鐘內產出具備「行長思維」的專業考題。
+1. 根目錄文件
 
-雲端存摺 (The Vault)：
+index.html：使用者介面檔案。
 
-載體：Cloudflare Workers + KV。
+functions/ (資料夾)：
 
-作用：負責數據的跨境同步。當您在電腦端發布考題，數據會存入 KV 空間，同仁的手機端會自動向其索取數據。
+api/ (子資料夾)：
 
-二、 部署五部曲：從零到一的建立過程
+[[path]].js：後端邏輯檔案（包含 API Key）。
 
-如果您未來需要重新部署或建立新分組，請遵循這五個步驟：
+2. 更新機制
 
-申請金鑰：到 DeepSeek 開放平台領取 API Key。
+您只要在 GitHub 網頁上編輯檔案並點擊 「Commit changes」，Cloudflare Pages 會在 1 分鐘內自動感應並完成全網同步，無需手動重新發布。
 
-建立保險箱：在 Cloudflare 建立一個 KV 命名空間 (名稱：STUDY_STORAGE)。
+參、 Cloudflare 後台關鍵設定 (Cloudflare Configuration)
 
-架設中轉站：建立一個 Cloudflare Worker (名稱：bank-study-api)，將後端代碼貼入，並在「繫結」標籤中，將其與剛建立的 KV 空間連接。
+這是系統能「通電」運作的核心步驟，若出現 Code 500 錯誤，通常是這裡的設定失效。
 
-配置程式碼：打開 TMU_Smart_System.html，將 DEEPSEEK_API_KEY 與 CLOUDFLARE_WORKER_API (Worker 的網址) 填入並存檔。
+1. KV 命名空間 (金庫)
 
-正式上線：將 HTML 檔案上傳到 GitHub，並在 Cloudflare Pages 連結該 Repo。同仁最終造訪的是 Pages 產出的網址。
+路徑：儲存空間和資料庫 -> KV。
 
-三、 日常運行流程：管理員與學員的操作
+名稱：STUDY_STORAGE。
 
-系統運作後，您與同仁的互動流程如下：
+2. 函式繫結 (授權存取)
 
-1. 管理員 (行長或指派人員)
+這是最重要的「轉發」動作，讓網頁有權利讀寫金庫：
 
-素材導入：在管理端一次選取多張法規照片或 PDF 檔案。
+進入 「Workers 和 Pages」 -> 點擊您的 Pages 專案。
 
-AI 出題：點擊「啟動出題」，AI 會根據素材生成初步題目。
+點擊 「設定」 (Settings) -> 「函式」 (Functions)。
 
-簽核微調：您在介面上直接修改題目敘述或調整專家解析。
+找到 「KV 命名空間繫結」。
 
-一鍵同步：點擊「正式存入雲端」，全分行的同仁手機便會自動更新考卷。
+點擊 「新增繫結」：
 
-2. 學員 (全體同仁)
+變數名稱：STUDY_DB (必須全大寫，一字不差)。
 
-造訪網址：在手機瀏覽器打開連結。
+KV 命名空間：選擇 STUDY_STORAGE。
 
-科目選擇：點選對應的業務分組 (如 TMU 或 授信)。
+點擊 「儲存」。
 
-互動測驗：答題後即時看到正確答案與您的「專家解析」。
+肆、 管理員營運流程 (Admin Operations)
 
-成就達成：完成後系統會顯示總結。
+1. 登入與環境檢查
 
-四、 穩定性優化：大陸直連的秘密
+造訪 https://deepmystic.net。
 
-為了確保在大陸境內「不需翻牆」也能秒開，我們做了以下隱藏優化：
+檢查左上角連線燈號：
 
-去 Google 化：完全移除 Firebase 和 Google 字體。
+🟢 綠燈：系統完全正常。
 
-Edge 部署：利用 Cloudflare 在全球（包含鄰近大陸）的邊緣節點進行數據分發。
+🔴 紅燈：API 連線中斷，請檢查 Cloudflare 繫結。
 
-CORS 保護：在 Worker 中設置了跨域保護，確保數據只能由您的專屬網頁調用。
+2. 智能出題三部曲
 
+導入素材：支援 PDF、Word、圖片或手動貼入。
+
+出題設定：點擊「AI 智能出題」後，選擇題數。點擊下方跳出的 「🚀 開始出題」。
+
+人工校閱：AI 生成後，您可以直接在網頁上修改題目文字、選項或解析。
+
+3. 正式發布
+
+填寫「卷宗名稱」（單元標題）。
+
+點擊 「🚀 正式發布至雲端」。一旦顯示成功，全行同仁的手機端會立刻同步看到。
+
+伍、 常見錯誤排除 (Troubleshooting)
+
+錯誤代碼 / 現象
+
+可能原因
+
+解決方法
+
+Code 405
+
+API 路徑或檔案位置不對
+
+檢查 GitHub 檔案是否位於 functions/api/[[path]].js。
+
+Code 500
+
+金庫未授權
+
+確認 Pages 設定中的 KV 繫結變數名為 STUDY_DB。
+
+Failed to fetch
+
+網域解析尚未完全生效
+
+等待 10-30 分鐘，或嘗試切換 4G/5G 網路。
+
+題目沒更新
+
+瀏覽器快取 (Cache) 影響
+
+點擊首頁下方的「強制刷新數據連線」或使用無痕模式。
+
+陸、 未來擴充建議 (Future Expansion)
+
+多分行管理：若要分開管理不同部門，可透過在 functions/api/[[path]].js 增加用戶驗證邏輯。
+
+安全性升級：可在 Cloudflare 開啟 Zero Trust，限制只有分行內部人員的 Email 才能存取。
+
+數據分析：目前資料庫僅存儲題目。未來可擴充「成績單」功能，將同仁答題紀錄存回 KV。
+
+行長的話：
+「知識是銀行的核心資產，AI 是轉化資產的加速器。願此系統成為分行精進業務的強大助力。」
