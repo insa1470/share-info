@@ -25,15 +25,9 @@
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .count-btn-active { border-color: var(--brand-green) !important; background-color: #f0fdf4 !important; color: var(--brand-green) !important; }
         
-        /* 🚀 核心優化：單屏測驗高度鎖定 */
-        .one-screen-quiz {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 120px);
-            justify-content: space-between;
-        }
+        .one-screen-quiz { display: flex; flex-direction: column; height: calc(100vh - 120px); justify-content: space-between; }
         .scroll-internal { max-height: 120px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .ai-progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ai-progress-bar { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .admin-tab-active { color: var(--brand-green); border-bottom: 3px solid var(--brand-green); }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -58,7 +52,7 @@
             <h1 class="font-bold text-gray-800 text-base tracking-tight">同仁，你好！</h1>
             <div class="flex items-center">
                 <div id="netStatus" class="status-dot bg-gray-300"></div>
-                <p id="netStatusText" class="text-[7px] text-gray-400 uppercase font-bold tracking-tighter italic">Syncing...</p>
+                <p id="netStatusText" class="text-[7px] text-gray-400 uppercase font-bold tracking-tighter italic">Connecting...</p>
             </div>
         </div>
         <button id="adminToggle" class="text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 card-active">管理員登入</button>
@@ -85,10 +79,9 @@
                 </div>
             </div>
 
-            <!-- 單元列表 (分頁機制) -->
             <div id="unitSelectView" class="hidden space-y-4">
                 <button onclick="window.backToCategories()" class="text-[10px] text-gray-400 font-bold py-2 mx-auto flex items-center hover:text-brand-green">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3" stroke-linecap="round"></path></svg>返回充實提升
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3" stroke-linecap="round"></path></svg>返回目錄
                 </button>
                 <div id="unitList" class="space-y-3"></div>
                 <div id="unitPagination" class="flex justify-center items-center gap-8 pt-4 hidden">
@@ -98,7 +91,6 @@
                 </div>
             </div>
 
-            <!-- 測驗區域 (核心：一屏模式) -->
             <div id="learnerQuiz" class="hidden text-left one-screen-quiz">
                 <div class="w-full">
                     <div class="bg-white rounded-2xl shadow-sm p-3 mb-4 flex items-center justify-between border border-gray-50">
@@ -139,7 +131,7 @@
                             <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png" multiple>
                         </div>
                         <div class="relative">
-                            <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs resize-none pr-10 focus:outline-none shadow-inner" placeholder="在此輸入或貼入法規素材文字..."></textarea>
+                            <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs resize-none pr-10 focus:outline-none shadow-inner" placeholder="內容在此顯示..."></textarea>
                             <button onclick="document.getElementById('rawText').value=''" class="absolute top-3 right-3 text-gray-300 p-1 hover:text-red-500">🗑️</button>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
@@ -150,13 +142,13 @@
                     </div>
                 </div>
 
-                <div class="px-2 mb-4"><h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest italic">已發佈卷宗精準移除 (🗑️)</h3></div>
+                <div class="px-2 mb-4"><h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest italic">已發佈卷宗管理</h3></div>
                 <div id="publishedExamsList" class="space-y-3 pb-10"></div>
 
                 <div id="aiLoader" class="hidden py-10 text-center slide-in">
                     <div class="mb-4"><p id="aiProgressPercent" class="text-4xl font-bold text-brand-green font-mono">0%</p></div>
                     <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden"><div id="aiProgressBar" class="ai-progress-bar bg-brand-green h-full w-0"></div></div>
-                    <p id="aiStatusMsg" class="text-[9px] text-gray-400 font-bold tracking-widest uppercase mt-2">DeepSeek Thinking...</p>
+                    <p id="aiStatusMsg" class="text-[9px] text-gray-400 font-bold tracking-widest uppercase mt-2">DeepSeek Analyzing...</p>
                 </div>
                 <div id="editArea" class="space-y-6 pb-28"></div>
             </div>
@@ -170,7 +162,11 @@
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-2xl text-[10px] font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[100] border border-gray-700 text-center max-w-[85vw]"></div>
 
     <script type="module">
-        window.showToast = (msg) => { const t = document.getElementById('toast'); if(!t) return; t.innerText = msg; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 4000); };
+        window.showToast = (msg) => { 
+            const t = document.getElementById('toast'); 
+            if(!t) return; t.innerText = msg; t.classList.remove('opacity-0'); 
+            setTimeout(() => t.classList.add('opacity-0'), 4500); 
+        };
         
         async function apiRequest(path, options = {}) {
             try {
@@ -178,17 +174,22 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || `Code ${res.status}`);
                 return data;
-            } catch (e) { window.showToast("❌ 同步異常：" + e.message); return null; }
+            } catch (e) { 
+                console.error(e); 
+                window.showToast("❌ 通訊異常：" + e.message); 
+                return null; 
+            }
         }
 
         async function checkConnection() {
             const dot = document.getElementById('netStatus');
             try {
                 const res = await fetch(API_BASE + "/getExams");
-                if (res.ok) { dot.className = "status-dot bg-green-500"; document.getElementById('netStatusText').innerText = "Online"; }
-            } catch (e) { dot.className = "status-dot bg-red-500"; document.getElementById('netStatusText').innerText = "Offline"; }
+                if (res.ok) { dot.className = "status-dot bg-green-500"; document.getElementById('netStatusText').innerText = "Connected"; }
+            } catch (e) { dot.className = "status-dot bg-red-500"; document.getElementById('netStatusText').innerText = "Disconnected"; }
         }
 
+        // --- 學員端邏輯 ---
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat; window.unitCurrentPage = 0;
             document.getElementById('learnerHome').classList.add('hidden');
@@ -201,7 +202,7 @@
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList'); if(!list) return;
             const filtered = (window.allExams || []).filter(e => e.category === window.currentCategory);
-            const totalPages = Math.max(1, Math.ceil(filtered.length / window.unitPageSize));
+            const totalPages = Math.ceil(filtered.length / window.unitPageSize);
             const pagedItems = filtered.slice(window.unitCurrentPage * window.unitPageSize, (window.unitCurrentPage + 1) * window.unitPageSize);
 
             if (filtered.length === 0) { list.innerHTML = `<div class="py-24 text-gray-300 italic text-xs">目前暫無更新</div>`; return; }
@@ -244,8 +245,8 @@
                         </div>
                     </div>
                     <div id="expl-box" class="hidden mt-4 pt-3 border-t border-gray-50">
-                        <div class="bg-[#fdfaf2] rounded-xl p-3 scroll-internal mb-3">
-                            <p class="text-[11px] leading-relaxed text-emerald-900"><span class="font-bold text-emerald-800 mr-1">💡 指導解析:</span>${item.i}</p>
+                        <div class="bg-[#fdfaf2] rounded-xl p-3 scroll-internal mb-3 text-[11px] leading-relaxed text-emerald-900">
+                            <span class="font-bold text-emerald-800 mr-1">💡 指導解析:</span>${item.i}
                         </div>
                         <button onclick="window.nextQuest()" class="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all">下一題</button>
                     </div>
@@ -276,7 +277,7 @@
             document.getElementById('result-screen').classList.remove('hidden');
             const total = window.quizData.length;
             const points = Math.round((window.score / total) * 100);
-            document.getElementById('result-score-text').innerText = `精進得分：${window.score} / ${total}`;
+            document.getElementById('result-score-text').innerText = `精進表現：${window.score} / ${total}`;
             document.getElementById('result-score-points').innerText = `${points} 分`;
             apiRequest("/saveRecord", { method: 'POST', body: JSON.stringify({ examId: window.currentExamId, score: window.score, total: total, wrongIndices: window.wrongIndices }) });
         };
@@ -290,6 +291,7 @@
             window.renderUnitSelect(); 
         };
 
+        // --- 管理端邏輯 ---
         window.switchAdminTab = (tab) => {
             window.adminTab = tab;
             document.getElementById('tabMan').className = tab === 'management' ? "flex-1 py-4 admin-tab-active" : "flex-1 py-4 text-gray-400";
@@ -302,16 +304,16 @@
 
         window.renderPublishedManagement = async () => {
             const area = document.getElementById('publishedExamsList');
-            area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse">數據刷新中...</div>`;
+            area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse">Syncing...</div>`;
             const data = await apiRequest("/getExams") || [];
             window.allExams = data;
             const filtered = data.filter(e => e.category === window.currentCategory);
-            if (filtered.length === 0) { area.innerHTML = `<div class="p-5 text-center text-gray-300 text-xs italic bg-white rounded-2xl border border-dashed border-gray-100">目前無已發佈內容</div>`; return; }
-            area.innerHTML = filtered.map(ex => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center slide-in"><div class="text-left"><h4 class="font-bold text-gray-700 text-xs">${ex.title}</h4><p class="text-[8px] text-gray-400 uppercase mt-1 font-bold tracking-widest">${ex.questions.length} 題精進素材</p></div><button onclick="window.confirmDeleteExam('${ex.id}', '${ex.title}')" class="p-2.5 bg-red-50 text-red-400 rounded-xl active:scale-90 transition-transform">🗑️</button></div>`).join('');
+            if (filtered.length === 0) { area.innerHTML = `<div class="p-5 text-center text-gray-300 text-xs italic bg-white rounded-2xl border border-dashed">目前無內容</div>`; return; }
+            area.innerHTML = filtered.map(ex => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center slide-in"><div class="text-left"><h4 class="font-bold text-gray-700 text-xs">${ex.title}</h4><p class="text-[8px] text-gray-400 uppercase mt-1 font-bold">${ex.questions.length} 題精進</p></div><button onclick="window.confirmDeleteExam('${ex.id}', '${ex.title}')" class="p-2.5 bg-red-50 text-red-400 rounded-xl active:scale-90 transition-transform">🗑️</button></div>`).join('');
         };
 
         window.confirmDeleteExam = async (id, title) => {
-            if(confirm(`確定要刪除「${title}」嗎？這會同步移除同仁的手機考卷。`)) {
+            if(confirm(`確定要刪除「${title}」嗎？這會讓同仁的主畫面同步移除。`)) {
                 const res = await apiRequest("/deleteExam", { method: 'POST', body: JSON.stringify({ id }) });
                 if(res) { window.showToast("✅ 已精準移除卷宗"); window.renderPublishedManagement(); }
             }
@@ -319,7 +321,7 @@
 
         window.renderAnalytics = async () => {
             const area = document.getElementById('analyticsList');
-            area.innerHTML = `<div class="py-20 text-center text-xs text-gray-300 animate-pulse uppercase tracking-widest">Analytics Loading...</div>`;
+            area.innerHTML = `<div class="py-20 text-center text-xs text-gray-300 animate-pulse uppercase tracking-widest italic">Analytics Loading...</div>`;
             const [exams, records] = await Promise.all([apiRequest("/getExams"), apiRequest("/getRecords")]);
             if(!exams || !records) return;
 
@@ -337,7 +339,7 @@
                         insight = `<div class="mt-3 p-3 bg-red-50 rounded-xl text-[10px] text-red-600 font-bold border border-red-100 shadow-inner">⚠️ 知識盲區：Q${maxIdx+1} 錯誤次數最高 (${maxErr}人次)</div>`;
                     }
                 }
-                return `<div class="bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm relative text-left slide-in"><div class="flex justify-between items-start"><h4 class="font-bold text-gray-700 text-sm tracking-tight">${ex.title}</h4><span class="text-[11px] font-mono font-bold ${avgPoints < 70 ? 'text-red-500' : 'text-brand-green'} bg-gray-50 px-2 py-0.5 rounded-full">平均 ${avgPoints} 分</span></div><div class="flex gap-4 mt-1 text-[9px] text-gray-400 font-bold uppercase tracking-tighter"><span>參與人數: ${count}</span></div>${insight}</div>`;
+                return `<div class="bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm relative text-left slide-in"><div class="flex justify-between items-start"><h4 class="font-bold text-gray-700 text-sm tracking-tight">${ex.title}</h4><span class="text-[10px] font-mono font-bold ${avgPoints < 70 ? 'text-red-500' : 'text-brand-green'} bg-gray-50 px-2 py-0.5 rounded-full">平均 ${avgPoints} 分</span></div><div class="flex gap-4 mt-1 text-[9px] text-gray-400 font-bold uppercase tracking-tighter"><span>參與人數: ${count}</span></div>${insight}</div>`;
             }).join('');
         };
 
@@ -351,40 +353,50 @@
         };
 
         window.executeAiGen = async (count) => {
-            const text = document.getElementById('rawText')?.value; if (!text) return window.showToast("請提供法規素材");
+            const text = document.getElementById('rawText')?.value; if (!text) return window.showToast("請提供法規素材內容");
             const loader = document.getElementById('aiLoader'); loader.classList.remove('hidden');
+            
+            // 🚀 核心優化：階段性進度反饋
             window.updateAiProgress(10, "Packing Content...");
+            await new Promise(r => setTimeout(r, 600));
+            window.updateAiProgress(30, "Connecting Cloud Brain...");
 
             try {
-                // 🚀 行長專屬：題型比例 + 實務情境提示詞
-                const prompt = `你是一位資深銀行內控與培訓專家。請根據法規內容產出 ${count} 題。
+                const prompt = `你是一位資深銀行內控專家。請根據法規內容產出 ${count} 題。
 要求：
-1. 若 5 題：3 題是非，2 題情境選擇。
-2. 若 10 題：7 題是非，3 題情境選擇。
-3. 是非題選項固定為 ["正確", "錯誤"]。
-4. 必須有精闢解析，指出實務操作關鍵。
-格式：純 JSON Array [ {"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。不要有任何多餘贅詞。內容如下：\n${text}`;
+1. 若 5 題：3 題是非，2 題選擇。
+2. 若 10 題：7 題是非，3 題選擇。
+3. 是非題選項為 ["正確", "錯誤"]。
+4. 必須提供專家級解析。
+格式：純 JSON Array [ {"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。內容如下：\n${text}`;
 
-                window.updateAiProgress(30, "DeepSeek Analyzing...");
-                const res = await apiRequest("/aiProxy", { method: 'POST', body: JSON.stringify({ prompt }) });
+                window.updateAiProgress(60, "DeepSeek Analyzing...");
                 
-                if (res) { 
-                    window.updateAiProgress(80, "Washing JSON...");
-                    let content = res.choices?.[0]?.message?.content || "";
-                    // 🚀 超強文字洗衣機：精準提取 [ ] 內的數據
-                    const jsonStart = content.indexOf('[');
-                    const jsonEnd = content.lastIndexOf(']') + 1;
-                    if(jsonStart === -1 || jsonEnd === 0) throw new Error("AI 回傳格式不正確");
-                    const cleanJson = content.substring(jsonStart, jsonEnd);
+                const data = await apiRequest("/aiProxy", { 
+                    method: 'POST', 
+                    body: JSON.stringify({ prompt })
+                });
+
+                if (data) { 
+                    window.updateAiProgress(90, "Polishing JSON...");
+                    let content = data.choices?.[0]?.message?.content || "";
+                    
+                    // 🚀 超強洗衣機：即便 AI 回傳帶有 Markdown 語法，也能精準提取
+                    const startIdx = content.indexOf('[');
+                    const endIdx = content.lastIndexOf(']') + 1;
+                    if(startIdx === -1 || endIdx === 0) throw new Error("AI 回傳格式不符合 Array");
+                    const cleanJson = content.substring(startIdx, endIdx);
                     
                     window.tempEditData = window.tempEditData.concat(JSON.parse(cleanJson)); 
                     window.renderEditCards(); 
                     window.updateAiProgress(100, "Ready!"); 
-                    setTimeout(() => { window.showToast(`✅ AI 已產出數據`); loader.classList.add('hidden'); }, 400);
-                } else { loader.classList.add('hidden'); }
+                    setTimeout(() => { window.showToast(`✅ AI 已產出練習題`); loader.classList.add('hidden'); }, 400);
+                } else {
+                    loader.classList.add('hidden');
+                }
             } catch (e) { 
-                console.error(e); 
-                window.showToast("❌ AI 回傳異常，建議減少素材量或縮短題數。"); 
+                console.error(e);
+                window.showToast("❌ AI 出題失敗，請減少素材量重試"); 
                 loader.classList.add('hidden');
             }
         };
@@ -404,7 +416,7 @@
             window.currentCategory = cat;
             document.querySelectorAll('.admin-cat-btn').forEach(btn => { btn.className = (btn.innerText.includes(cat)) ? "admin-cat-btn flex-1 py-3 rounded-xl text-xs font-bold bg-brand-green text-white shadow-lg transition-all" : "admin-cat-btn flex-1 py-3 rounded-xl text-xs font-bold bg-gray-50 text-gray-400 transition-all"; });
             window.tempEditData = []; window.renderEditCards();
-            if(window.isAdminView) window.renderPublishedManagement();
+            if(window.isAdminView && window.adminTab === 'management') window.renderPublishedManagement();
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -457,7 +469,7 @@
             publishBtn.onclick = async () => {
                 const title = document.getElementById('unitTitleInput')?.value; if (!title) return window.showToast("請定義名稱");
                 if (window.tempEditData.length === 0) return window.showToast("無內容可上傳");
-                publishBtn.disabled = true; publishBtn.innerText = "數據同步中...";
+                publishBtn.disabled = true; publishBtn.innerText = "數據發布中...";
                 const res = await apiRequest("/saveExam", { method: 'POST', body: JSON.stringify({ category: window.currentCategory, title, questions: window.tempEditData }) });
                 if (res) { window.showToast("✅ 上傳成功！同仁手機已同步。"); window.tempEditData = []; document.getElementById('unitTitleInput').value = ""; window.renderEditCards(); window.renderPublishedManagement(); }
                 publishBtn.disabled = false; publishBtn.innerText = "🚀 上傳資料庫";
