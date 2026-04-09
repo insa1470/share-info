@@ -16,11 +16,11 @@
         .text-brand-green { color: var(--brand-green); }
         .bg-brand-gold { background-color: var(--brand-gold); }
         
-        /* 🚀 物理隔離機制 */
+        /* 🚀 物理隔離機制：確保畫面絕對不重疊 */
         .view-section { display: none !important; }
         .view-active { 
             display: block !important; 
-            height: calc(100vh - 70px); 
+            height: 100vh; 
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch; 
             padding-bottom: 5rem;
@@ -38,13 +38,18 @@
         .count-btn-active { border-color: var(--brand-green) !important; background-color: #f0fdf4 !important; color: var(--brand-green) !important; }
         
         /* 測驗 UI */
-        .quiz-container-box { display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 1rem; }
+        .quiz-container-box { display: flex; flex-direction: column; height: auto; justify-content: space-between; padding: 1rem; }
         .scroll-area-internal { max-height: 140px; overflow-y: auto; padding: 0.5rem; }
         .ai-progress-bar { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .admin-tab-active { color: var(--brand-green); border-bottom: 3px solid var(--brand-green); }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        /* 🚀 導航欄固定置頂 */
+        .nav-fixed { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: white; }
+        /* 🚀 內容區緩衝：防止被導航欄遮擋 */
+        .content-spacer { height: 80px; width: 100%; }
     </style>
 </head>
 <body>
@@ -59,8 +64,8 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
 
-    <!-- 🚀 UI 修正：導航欄設為 Fixed 確保層次正確 -->
-    <nav class="bg-white shadow-sm px-5 py-3 flex justify-between items-center fixed top-0 left-0 w-full z-[100] border-b-2 border-[#D4AF37] h-[70px]">
+    <!-- 頂部導航 -->
+    <nav class="nav-fixed shadow-sm px-5 py-3 flex justify-between items-center border-b-2 border-[#D4AF37] h-[70px]">
         <div class="flex flex-col text-left">
             <h1 id="navTitle" class="font-bold text-gray-800 text-base tracking-tight">同仁，你好！</h1>
             <div class="flex items-center">
@@ -68,19 +73,20 @@
                 <p id="netStatusText" class="text-[7px] text-gray-400 uppercase font-bold tracking-tighter">Syncing...</p>
             </div>
         </div>
+        <!-- 🚀 核心修復：按鈕綁定 onclick 並確保邏輯正確 -->
         <button id="adminToggle" onclick="window.toggleAdminMode()" class="text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 card-active transition-all">管理員登入</button>
     </nav>
 
     <!-- [View 1] 學員首頁 -->
     <div id="learnerHome" class="view-section view-active px-5 text-center">
-        <div class="h-[70px] w-full"></div> <!-- 🚀 物理佔位 Spacer -->
+        <div class="content-spacer"></div> <!-- 🚀 物理空間防線 -->
         <div class="space-y-2 mb-10 pt-6 text-center">
             <h2 class="text-2xl font-bold text-gray-800">充實！提升！</h2>
             <div class="w-10 h-1 bg-brand-gold mx-auto rounded-full"></div>
         </div>
         <div class="grid grid-cols-1 gap-6">
             <div onclick="window.onSelectCategory('專業')" class="card-active bg-white p-12 rounded-[2.5rem] border-b-8 border-[#006D41] shadow-premium flex flex-col items-center group transition-all cursor-pointer">
-                <div class="text-6xl mb-4 group-active:scale-110 transition-transform">🎓</div>
+                <div class="text-6xl mb-4 group-active:scale-110">🎓</div>
                 <h3 class="font-bold text-lg text-gray-700">專業知識</h3>
                 <p class="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Banking Domain</p>
             </div>
@@ -94,7 +100,7 @@
 
     <!-- [View 2] 考卷目錄 -->
     <div id="unitSelectView" class="view-section px-5 text-center">
-        <div class="h-[70px] w-full"></div>
+        <div class="content-spacer"></div>
         <button onclick="window.switchView('learnerHome')" class="text-[10px] text-gray-400 font-bold py-2 mb-4 mx-auto flex items-center hover:text-brand-green pt-6">
             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"></path></svg>返回主目錄
         </button>
@@ -108,10 +114,10 @@
 
     <!-- [View 3] 進行測驗畫面 -->
     <div id="learnerQuiz" class="view-section">
-        <div class="h-[70px] w-full"></div>
+        <div class="content-spacer"></div>
         <div class="quiz-container-box">
             <div id="quizContentArea" class="w-full">
-                <button onclick="window.switchView('learnerHome')" class="text-[10px] text-gray-400 font-bold py-2 mb-2 flex items-center hover:text-brand-green pt-2">
+                <button onclick="window.switchView('learnerHome')" class="text-[10px] text-gray-400 font-bold py-2 mb-2 flex items-center hover:text-brand-green">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"></path></svg>退出並返回主目錄
                 </button>
                 <div class="bg-white rounded-2xl shadow-sm p-3 mb-4 flex items-center justify-between border border-gray-50">
@@ -131,15 +137,15 @@
         </div>
     </div>
 
-    <!-- [View 4] 管理後台 -->
+    <!-- [View 4] 管理端介面 -->
     <div id="adminSection" class="view-section px-5">
-        <div class="h-[70px] w-full"></div>
-        <div class="flex border-b border-gray-100 mb-6 font-bold text-xs sticky top-0 bg-[#f7f9f8] z-[50] py-4">
+        <div class="content-spacer"></div>
+        <!-- 🚀 管理端 UI 加固：標籤欄上方增加間距 -->
+        <div class="flex border-b border-gray-100 mb-6 font-bold text-xs sticky top-0 bg-[#f7f9f8] z-[50] py-4 mt-2">
             <button onclick="window.switchAdminTab('management')" id="tabMan" class="flex-1 py-4 admin-tab-active transition-all">出題管理</button>
             <button onclick="window.switchAdminTab('analytics')" id="tabAna" class="flex-1 py-4 text-gray-400 transition-all">數據看板</button>
         </div>
 
-        <!-- 管理出題區 -->
         <div id="adminManagement">
             <div class="bg-white p-6 rounded-[2.5rem] shadow-premium border border-gray-50 mb-8">
                 <div class="flex gap-2 mb-6">
@@ -150,7 +156,7 @@
                     <input type="text" id="unitTitleInput" class="w-full p-4 border border-gray-100 rounded-2xl text-sm font-bold bg-gray-50 focus:ring-2 focus:ring-brand-green" placeholder="設定卷宗名稱">
                     <div id="dropZone" class="border-2 border-dashed border-gray-200 rounded-[1.5rem] p-7 text-center cursor-pointer hover:bg-green-50 mb-6 group transition-all">
                         <div class="text-4xl mb-2 font-bold text-gray-300">📂</div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-tight">導入素材 (PDF/Word/圖)</p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">導入素材 (PDF/Word/圖)</p>
                         <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png" multiple>
                     </div>
                     <textarea id="rawText" class="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs resize-none focus:outline-none mb-4" placeholder="解析內容將顯示於此..."></textarea>
@@ -169,10 +175,9 @@
             <div id="editArea" class="space-y-6 pb-28"></div>
         </div>
 
-        <!-- 🚀 數據看板區 (整合且過濾參與人數為 0) -->
         <div id="adminAnalytics" class="hidden pb-20 space-y-4">
             <div class="bg-[#f0fdf4] p-4 rounded-2xl border border-emerald-100 mb-6 flex justify-between items-center">
-                <p class="text-[10px] text-emerald-800 font-bold uppercase tracking-widest">全行精進概況數據看板</p>
+                <p class="text-[10px] text-emerald-800 font-bold uppercase tracking-widest font-black">全行精進概況數據 (已過濾參與人數為 0)</p>
                 <span class="text-[8px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-bold">整合視角</span>
             </div>
             <div id="analyticsList" class="space-y-4"></div>
@@ -199,8 +204,8 @@
     </div>
 
     <!-- 續作詢問彈窗 -->
-    <div id="resumeModal" class="hidden fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-xs rounded-[2.5rem] shadow-2xl p-8 border border-gray-50 text-center slide-in">
+    <div id="resumeModal" class="hidden fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-6 text-center slide-in">
+        <div class="bg-white w-full max-w-xs rounded-[2.5rem] shadow-2xl p-8 border border-gray-50">
             <div class="text-5xl mb-4 text-brand-gold">🔖</div>
             <h3 class="text-base font-bold text-gray-800 mb-2">偵測到未完進度</h3>
             <p class="text-[10px] text-gray-400 mb-8 px-4 leading-relaxed">您上次做到一半，是否要從中斷處恢復進度？</p>
@@ -223,6 +228,21 @@
             const titleMap = { 'learnerHome': '同仁，你好！', 'unitSelectView': '考卷目錄', 'learnerQuiz': '練習進行中', 'adminSection': '管理後台看板' };
             document.getElementById('navTitle').innerText = titleMap[viewId] || '智慧學習平台';
             window.scrollTo(0,0);
+        };
+
+        // --- 🚀 關鍵修復：管理員模式切換邏輯 ---
+        window.toggleAdminMode = () => {
+            window.isAdminView = !window.isAdminView;
+            if (window.isAdminView) {
+                window.switchView('adminSection');
+                document.getElementById('adminToggle').innerText = "返回首頁";
+                document.getElementById('adminToggle').className = "text-[9px] px-4 py-2 rounded-xl font-bold bg-brand-green text-white shadow-md card-active";
+                window.switchAdminTab('management');
+            } else {
+                window.switchView('learnerHome');
+                document.getElementById('adminToggle').innerText = "管理員登入";
+                document.getElementById('adminToggle').className = "text-[9px] px-4 py-2 rounded-xl font-bold bg-gray-100 text-gray-500 card-active";
+            }
         };
 
         window.saveProgress = () => { if (!window.currentExamId) return; localStorage.setItem(`save_${window.currentExamId}`, JSON.stringify({ currentIdx: window.currentIdx, score: window.score, wrongIndices: window.wrongIndices })); };
@@ -249,7 +269,7 @@
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat; window.unitCurrentPage = 0;
             window.switchView('unitSelectView');
-            window.showToast(`🔍 正在同步雲端單元...`);
+            window.showToast(`🔍 正在刷新考題中...`);
             const data = await apiRequest("/getExams");
             if (data) { window.allExams = data; window.renderUnitSelect(); }
         };
@@ -345,13 +365,6 @@
             apiRequest("/saveRecord", { method: 'POST', body: JSON.stringify({ examId: window.currentExamId, score: window.score, total: total, wrongIndices: window.wrongIndices }) });
         };
 
-        // --- 管理邏輯 ---
-        window.toggleAdminMode = () => {
-            window.isAdminView = !window.isAdminView;
-            if (window.isAdminView) { window.switchView('adminSection'); document.getElementById('adminToggle').innerText = "返回首頁"; window.switchAdminTab('management'); }
-            else { window.switchView('learnerHome'); document.getElementById('adminToggle').innerText = "管理員登入"; }
-        };
-
         window.switchAdminTab = (tab) => {
             window.adminTab = tab;
             document.getElementById('tabMan').className = tab === 'management' ? "flex-1 py-4 admin-tab-active" : "flex-1 py-4 text-gray-400";
@@ -363,7 +376,7 @@
         };
 
         window.renderPublishedManagement = async () => {
-            const area = document.getElementById('publishedExamsList'); area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse">Syncing...</div>`;
+            const area = document.getElementById('publishedExamsList'); area.innerHTML = `<div class="py-4 text-center text-[10px] text-gray-300 animate-pulse uppercase tracking-widest">Syncing...</div>`;
             const data = await apiRequest("/getExams") || []; window.allExams = data;
             const filtered = data.filter(e => e.category === window.currentCategory);
             if (filtered.length === 0) { area.innerHTML = `<div class="p-6 text-center text-gray-300 text-xs italic bg-white rounded-2xl border border-dashed mb-6">目前無單元</div>`; return; }
@@ -372,7 +385,7 @@
 
         window.deleteExam = async (id, title) => { if(confirm(`確定要移除「${title}」嗎？`)) { const res = await apiRequest("/deleteExam", { method: 'POST', body: JSON.stringify({ id }) }); if(res) { window.showToast("✅ 已精簡移除"); window.renderPublishedManagement(); } } };
 
-        // 🚀 數據看板優化：整合並隱藏 0 人考卷
+        // 🚀 數據看板整合邏輯：隱藏 0 人考卷
         window.renderAnalytics = async () => {
             const area = document.getElementById('analyticsList'); area.innerHTML = `<div class="py-20 text-center text-xs text-gray-300 animate-pulse italic uppercase tracking-widest">數據整合中...</div>`;
             const [exams, records] = await Promise.all([apiRequest("/getExams"), apiRequest("/getRecords")]);
@@ -380,35 +393,24 @@
             
             // 🚀 過濾：只顯示參與人數大於 0 的考卷
             const activeExams = exams.filter(ex => records.some(r => r.examId === ex.id));
-            
-            if(activeExams.length === 0) { area.innerHTML = `<div class="py-32 text-center text-gray-300 italic text-xs">目前尚無同仁作答紀錄。</div>`; return; }
+            if(activeExams.length === 0) { area.innerHTML = `<div class="py-32 text-center text-gray-300 italic text-xs">目前尚未有同仁作答數據。</div>`; return; }
 
             area.innerHTML = activeExams.map(ex => {
                 const exRecs = records.filter(r => r.examId === ex.id); const count = exRecs.length;
                 const avgPoints = count > 0 ? (exRecs.reduce((s, c) => s + (c.score / c.total * 100), 0) / count).toFixed(1) : "0.0";
-                
                 let insight = "";
-                const errorCounts = new Array(ex.questions.length).fill(0); 
-                exRecs.forEach(r => (r.wrongIndices || []).forEach(idx => errorCounts[idx]++));
-                const threshold = Math.round(count * 0.3); // 🚀 四捨五入
-                const blindSpots = [];
-                errorCounts.forEach((errCount, idx) => { if (errCount >= threshold && errCount > 0) blindSpots.push({ idx, errCount }); });
+                if(count > 0) {
+                    const errorCounts = new Array(ex.questions.length).fill(0); 
+                    exRecs.forEach(r => (r.wrongIndices || []).forEach(idx => errorCounts[idx]++));
+                    const threshold = Math.round(count * 0.3); // 🚀 四捨五入
+                    const blindSpots = [];
+                    errorCounts.forEach((errCount, idx) => { if (errCount >= threshold && errCount > 0) blindSpots.push({ idx, errCount }); });
 
-                if(blindSpots.length > 0) {
-                    insight = `<div class="mt-3 p-3 bg-red-50 rounded-xl border border-red-100">
-                        <p class="text-[10px] text-red-600 font-bold mb-2 uppercase tracking-widest">⚠️ 知識盲區 (達 ${threshold} 人錯)</p>
-                        <div class="flex flex-wrap gap-2">${blindSpots.map(bs => `<button onclick="window.previewBlindSpot('${ex.id}', ${bs.idx})" class="bg-white border border-red-200 px-3 py-1 rounded-lg text-[10px] text-red-700 font-bold shadow-sm active:scale-95">Q${bs.idx+1} (${bs.errCount}人錯)</button>`).join('')}</div>
-                    </div>`;
+                    if(blindSpots.length > 0) {
+                        insight = `<div class="mt-3 p-3 bg-red-50 rounded-xl border border-red-100"><p class="text-[10px] text-red-600 font-bold mb-2 uppercase tracking-widest">⚠️ 知識盲區 (達 ${threshold} 人錯)</p><div class="flex flex-wrap gap-2">${blindSpots.map(bs => `<button onclick="window.previewBlindSpot('${ex.id}', ${bs.idx})" class="bg-white border border-red-200 px-3 py-1 rounded-lg text-[10px] text-red-700 font-bold shadow-sm active:scale-95">Q${bs.idx+1} (${bs.errCount}人錯)</button>`).join('')}</div></div>`;
+                    }
                 }
-                
-                return `<div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm relative text-left mb-4 slide-in">
-                    <div class="flex justify-between items-start">
-                        <div><span class="px-2 py-0.5 rounded text-[8px] bg-gray-100 text-gray-500 uppercase font-bold mr-1">${ex.category}</span><h4 class="font-bold text-gray-700 text-sm tracking-tight inline">${ex.title}</h4></div>
-                        <span class="text-[11px] font-mono font-bold ${avgPoints < 70 ? 'text-red-500' : 'text-brand-green'}">平均 ${avgPoints} 分</span>
-                    </div>
-                    <div class="flex gap-4 mt-1 text-[9px] text-gray-400 font-bold uppercase tracking-tighter"><span>參與人數: ${count}</span></div>
-                    ${insight}
-                </div>`;
+                return `<div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm relative text-left mb-4 slide-in"><div class="flex justify-between items-start"><div><span class="px-2 py-0.5 rounded text-[8px] bg-gray-100 text-gray-500 uppercase font-bold mr-1">${ex.category}</span><h4 class="font-bold text-gray-700 text-sm tracking-tight inline">${ex.title}</h4></div><span class="text-[11px] font-mono font-bold ${avgPoints < 70 ? 'text-red-500' : 'text-brand-green'} bg-gray-50 px-2 py-0.5 rounded-full">平均 ${avgPoints} 分</span></div><div class="flex gap-4 mt-1 text-[9px] text-gray-400 font-bold uppercase tracking-tighter"><span>參與人數: ${count}</span></div>${insight}</div>`;
             }).join('');
         };
 
@@ -416,12 +418,7 @@
             const exam = window.allExams.find(e => e.id === examId); if(!exam) return;
             const q = exam.questions[qIdx];
             const modal = document.getElementById('previewModal');
-            document.getElementById('previewContent').innerHTML = `
-                <div class="mb-4"><span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded font-bold uppercase">${exam.category} 考卷快照</span></div>
-                <p class="text-sm font-bold text-gray-800 leading-relaxed mb-6">${q.q}</p>
-                <div class="space-y-2">${q.o.map((opt, i) => `<div class="p-3 rounded-xl border text-[11px] ${q.a == i ? 'bg-green-50 border-green-200 text-green-700 font-bold' : 'bg-gray-50 border-gray-100 text-gray-400'}">${opt} ${q.a == i ? '✓' : ''}</div>`).join('')}</div>
-                <div class="bg-yellow-50 p-4 rounded-2xl border-l-4 border-brand-gold mt-6"><p class="text-[10px] leading-relaxed text-yellow-900 font-medium"><span class="font-bold text-yellow-700">💡 專家解析指導：</span>${q.i}</p></div>
-            `;
+            document.getElementById('previewContent').innerHTML = `<div class="mb-4"><span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded font-bold uppercase">${exam.category} 考卷快照</span></div><p class="text-sm font-bold text-gray-800 leading-relaxed mb-6">${q.q}</p><div class="space-y-2">${q.o.map((opt, i) => `<div class="p-3 rounded-xl border text-[11px] ${q.a == i ? 'bg-green-50 border-green-200 text-green-700 font-bold' : 'bg-gray-50 border-gray-100 text-gray-400'}">${opt} ${q.a == i ? '✓' : ''}</div>`).join('')}</div><div class="bg-yellow-50 p-4 rounded-2xl border-l-4 border-brand-gold mt-6"><p class="text-[10px] leading-relaxed text-yellow-900 font-medium"><span class="font-bold text-yellow-700">💡 專家解析指導：</span>${q.i}</p></div>`;
             modal.classList.remove('hidden');
         };
 
