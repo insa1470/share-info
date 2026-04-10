@@ -515,10 +515,14 @@
 
         async function apiRequest(path, options = {}) {
             try {
-                // 管理員專用 API 自動帶上密碼 header
+                // 管理員專用 API 自動帶上帳號+密碼 header
                 const adminPaths = ['/saveExam', '/deleteExam', '/getRecords', '/aiProxy'];
-                if (adminPaths.some(p => path.startsWith(p)) && window.adminPassword) {
-                    options.headers = { ...options.headers, 'X-Admin-Password': window.adminPassword };
+                if (adminPaths.some(p => path.startsWith(p))) {
+                    options.headers = {
+                        ...options.headers,
+                        'X-Admin-Username': window.adminUsername || '',
+                        'X-Admin-Password': window.adminPassword || ''
+                    };
                 }
                 const res = await fetch(API_BASE + path, options);
                 const data = await res.json();
