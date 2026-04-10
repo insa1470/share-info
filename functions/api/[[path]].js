@@ -8,17 +8,18 @@ export async function onRequest(context) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Admin-Password",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Admin-Username, X-Admin-Password",
   };
 
   if (request.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // 管理員密碼驗證函式
+  // 管理員帳號密碼驗證函式
   const verifyAdmin = () => {
+    const user = request.headers.get("X-Admin-Username");
     const pw = request.headers.get("X-Admin-Password");
-    return pw && pw === env.ADMIN_PASSWORD;
+    return user && pw && user === env.ADMIN_USERNAME && pw === env.ADMIN_PASSWORD;
   };
 
   try {
@@ -30,10 +31,13 @@ export async function onRequest(context) {
 
     // --- 管理員登入驗證 ---
     if (path === "/api/verifyAdmin" && request.method === "POST") {
+      if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ error: "伺服器尚未設定管理員帳密，請至 Cloudflare 環境變數設定 ADMIN_USERNAME 與 ADMIN_PASSWORD" }), { status: 500, headers: corsHeaders });
+      }
       if (verifyAdmin()) {
         return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
       }
-      return new Response(JSON.stringify({ error: "密碼錯誤" }), { status: 401, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "帳號或密碼錯誤" }), { status: 401, headers: corsHeaders });
     }
 
     // --- 1. 考卷管理功能 ---
