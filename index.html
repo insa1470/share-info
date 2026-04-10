@@ -326,6 +326,19 @@
         </div>
     </div>
 
+    <!-- Welcome / Nickname Modal -->
+    <div id="welcomeModal" style="display:none;position:fixed;inset:0;z-index:1400;align-items:center;justify-content:center;padding:24px;">
+        <div class="modal-overlay" style="position:absolute;inset:0;"></div>
+        <div style="position:relative;width:100%;max-width:380px;background:#fff;border-radius:28px;padding:36px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+            <div style="font-size:52px;margin-bottom:16px;">👋</div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:8px;">歡迎使用學習平台</div>
+            <div style="font-size:14px;color:var(--sys-label2);line-height:1.6;margin-bottom:28px;">請輸入你的姓名或暱稱<br>之後就不需要再填了</div>
+            <input type="text" id="nicknameInput" class="ios-input" placeholder="例如：小明、王大明" maxlength="10" style="text-align:center;font-size:18px;font-weight:600;margin-bottom:8px;" onkeydown="if(event.key==='Enter')window.saveNickname()">
+            <div id="nicknameError" style="display:none;color:#FF3B30;font-size:12px;margin-bottom:8px;">請輸入名字才能繼續</div>
+            <button onclick="window.saveNickname()" class="btn-primary" style="margin-top:12px;">開始學習</button>
+        </div>
+    </div>
+
     <!-- Admin Login Modal -->
     <div id="adminLoginModal" style="display:none;position:fixed;inset:0;z-index:1300;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)window.cancelAdminLogin()">
         <div class="modal-overlay" style="position:absolute;inset:0;"></div>
@@ -401,6 +414,21 @@
     <script type="module">
         window.showModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'flex'; };
         window.hideModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
+
+        // 暱稱管理
+        window.userName = localStorage.getItem('user_name') || '';
+
+        window.saveNickname = () => {
+            const input = document.getElementById('nicknameInput');
+            const errEl = document.getElementById('nicknameError');
+            const name = input.value.trim();
+            if (!name) { errEl.style.display = 'block'; return; }
+            window.userName = name;
+            localStorage.setItem('user_name', name);
+            window.hideModal('welcomeModal');
+            document.getElementById('navTitle').innerText = name + '，你好';
+            window.showToast('歡迎，' + name + ' 🎉');
+        };
 
         // 管理員登入邏輯
         window.adminPassword = sessionStorage.getItem('adminPw') || '';
@@ -670,7 +698,7 @@
             document.getElementById('result-score-text').innerText = `答對 ${window.score} / ${total} 題`;
             document.getElementById('result-score-points').innerText = `${points}`;
             window.clearProgress(window.currentExamId);
-            apiRequest("/saveRecord",{method:'POST',body:JSON.stringify({examId:window.currentExamId,score:window.score,total,wrongIndices:window.wrongIndices})});
+            apiRequest("/saveRecord",{method:'POST',body:JSON.stringify({examId:window.currentExamId,score:window.score,total,wrongIndices:window.wrongIndices,userName:window.userName||'匿名'})});
         };
 
         window.switchAdminTab = (tab) => {
@@ -730,19 +758,30 @@
                             ${blindSpots.map(bs=>`<button onclick="window.previewBlindSpot('${ex.id}',${bs.i})" class="blindspot-tag">Q${bs.i+1} · ${bs.e}人</button>`).join('')}
                         </div>
                     </div>`:'';
+                // 個人成績列表
+                const memberRows = exRecs.map(r => {
+                    const pts = Math.round(r.score / r.total * 100);
+                    const name = r.userName || '匿名';
+                    const date = new Date(r.t).toLocaleDateString('zh-TW', {month:'numeric',day:'numeric'});
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--sys-separator);">
+                        <div style="font-size:14px;font-weight:500;">${name}</div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:11px;color:var(--sys-label3);">${date}</span>
+                            <span style="font-size:15px;font-weight:700;color:${pts<70?'#FF3B30':'var(--brand-green)'};font-variant-numeric:tabular-nums;min-width:40px;text-align:right;">${pts}分</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
                 return `
                     <div class="analytics-card">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
                             <div>
                                 <span style="font-size:11px;font-weight:600;background:var(--sys-fill);color:var(--sys-label2);padding:2px 8px;border-radius:4px;margin-bottom:6px;display:inline-block;">${ex.category}</span>
                                 <div style="font-size:16px;font-weight:600;letter-spacing:-0.2px;">${ex.title}</div>
-                            </div>
-                            <div style="text-align:right;">
-                                <div style="font-size:22px;font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};font-variant-numeric:tabular-nums;">${avg}</div>
-                                <div style="font-size:11px;color:var(--sys-label3);">平均分</div>
+                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與 · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};">${avg} 分</span></div>
                             </div>
                         </div>
-                        <div style="font-size:13px;color:var(--sys-label2);">${count} 人參與</div>
+                        <div style="margin-bottom:12px;">${memberRows}</div>
                         ${blindHtml}
                     </div>`;
             }).join('');
@@ -851,6 +890,13 @@
 
         document.addEventListener('DOMContentLoaded',()=>{
             checkConnection();
+            // 檢查是否已有暱稱
+            if (!window.userName) {
+                window.showModal('welcomeModal');
+                setTimeout(() => document.getElementById('nicknameInput').focus(), 300);
+            } else {
+                document.getElementById('navTitle').innerText = window.userName + '，你好';
+            }
             const dropZone=document.getElementById('dropZone');
             const fileInput=document.getElementById('fileInput');
             const publishBtn=document.getElementById('publishBtn');
