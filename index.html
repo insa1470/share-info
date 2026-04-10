@@ -314,8 +314,9 @@
         </div>
 
         <div id="adminAnalytics" class="hidden" style="padding-bottom:40px;">
-            <div style="background:rgba(0,161,155,0.06);border:1px solid rgba(0,161,155,0.12);border-radius:var(--sys-radius-sm);padding:12px 16px;margin-bottom:20px;">
+            <div style="background:rgba(0,161,155,0.06);border:1px solid rgba(0,161,155,0.12);border-radius:var(--sys-radius-sm);padding:12px 16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
                 <div style="font-size:12px;font-weight:600;color:var(--brand-green);text-transform:uppercase;letter-spacing:0.5px;">全行精進數據</div>
+                <button onclick="window.exportReport()" style="background:var(--brand-green);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📊 匯出報表</button>
             </div>
             <div id="analyticsList" style="display:flex;flex-direction:column;gap:12px;"></div>
             <div id="dashboardPagination" style="display:none;justify-content:center;align-items:center;gap:24px;padding:20px 0;border-top:0.5px solid var(--sys-separator);margin-top:8px;">
@@ -723,7 +724,10 @@
                         <div style="font-size:15px;font-weight:500;">${ex.title}</div>
                         <div style="font-size:12px;color:var(--sys-label2);margin-top:2px;">${ex.questions.length} 題</div>
                     </div>
-                    <button onclick="window.deleteExam('${ex.id}','${ex.title}')" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="window.downloadExam('${ex.id}')" style="background:rgba(0,161,155,0.1);border:none;color:var(--brand-green);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">📄 下載</button>
+                        <button onclick="window.deleteExam('${ex.id}','${ex.title}')" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
+                    </div>
                 </div>`).join('');
         };
 
@@ -796,6 +800,98 @@
 
         window.prevDashPage = () => {if(window.dashboardCurrentPage>0){window.dashboardCurrentPage--;window.renderAnalytics();}};
         window.nextDashPage = () => {window.dashboardCurrentPage++;window.renderAnalytics();};
+
+        // ── 下載題目（HTML 列印版）──
+        window.downloadExam = (examId) => {
+            const exam = window.allExams.find(e => e.id === examId);
+            if (!exam) return;
+            const today = new Date().toLocaleDateString('zh-TW');
+            const questionsHtml = exam.questions.map((q, i) => `
+                <div style="margin-bottom:28px;page-break-inside:avoid;">
+                    <div style="font-weight:700;font-size:15px;margin-bottom:10px;color:#000;">
+                        ${i+1}. ${q.q}
+                    </div>
+                    <div style="padding-left:16px;">
+                        ${q.o.map((opt, oi) => `
+                            <div style="margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;">
+                                <span style="font-weight:${q.a==oi?'700':'400'};color:${q.a==oi?'#00A19B':'#333'};">
+                                    ${['A','B','C','D'][oi]}. ${opt} ${q.a==oi?'✓':''}
+                                </span>
+                            </div>`).join('')}
+                    </div>
+                    <div style="margin-top:10px;padding:10px 14px;background:#f0fdf9;border-left:3px solid #00A19B;border-radius:0 8px 8px 0;font-size:13px;color:#005f5a;">
+                        <strong>解析：</strong>${q.i}
+                    </div>
+                </div>`).join('<hr style="border:none;border-top:1px dashed #ddd;margin:20px 0;">');
+
+            const html = `<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>${exam.title}</title>
+<style>
+  body { font-family: -apple-system, 'Noto Sans TC', sans-serif; max-width: 720px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; }
+  h1 { font-size: 22px; color: #00A19B; margin-bottom: 4px; }
+  .meta { font-size: 13px; color: #888; margin-bottom: 32px; border-bottom: 2px solid #00A19B; padding-bottom: 12px; }
+  @media print { body { margin: 20px; } button { display: none; } }
+</style>
+</head>
+<body>
+  <h1>${exam.title}</h1>
+  <div class="meta">類別：${exam.category} ｜ 題數：${exam.questions.length} 題 ｜ 匯出日期：${today}</div>
+  <button onclick="window.print()" style="margin-bottom:24px;padding:10px 20px;background:#00A19B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🖨️ 列印 / 另存 PDF</button>
+  ${questionsHtml}
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${exam.title}_題目.html`;
+            a.click();
+            window.showToast('題目已下載，用瀏覽器開啟可列印');
+        };
+
+        // ── 匯出管理報表（CSV）──
+        window.exportReport = async () => {
+            window.showToast('報表產製中...');
+            const [exams, records] = await Promise.all([apiRequest("/getExams"), apiRequest("/getRecords")]);
+            if (!exams || !records) return;
+
+            const today = new Date().toLocaleDateString('zh-TW');
+            let csv = '\uFEFF'; // BOM，讓 Excel 正確顯示中文
+            csv += `玉山銀行精進學習管理報表,匯出日期：${today}\n\n`;
+            csv += `卷宗名稱,類別,參與人數,平均分數,最高分,最低分\n`;
+
+            exams.forEach(ex => {
+                const exRecs = records.filter(r => r.examId === ex.id);
+                if (exRecs.length === 0) return;
+                const scores = exRecs.map(r => Math.round(r.score / r.total * 100));
+                const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+                const max = Math.max(...scores);
+                const min = Math.min(...scores);
+                csv += `"${ex.title}","${ex.category}",${exRecs.length},${avg}%,${max}%,${min}%\n`;
+            });
+
+            csv += `\n同仁答題明細\n`;
+            csv += `姓名,卷宗名稱,類別,分數,答題日期\n`;
+
+            records.forEach(r => {
+                const ex = exams.find(e => e.id === r.examId);
+                if (!ex) return;
+                const pts = Math.round(r.score / r.total * 100);
+                const date = new Date(r.t).toLocaleDateString('zh-TW');
+                const name = r.userName || '匿名';
+                csv += `"${name}","${ex.title}","${ex.category}",${pts}%,"${date}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `玉山精進學習報表_${today.replace(/\//g,'-')}.csv`;
+            a.click();
+            window.showToast('報表已下載，可用 Excel 開啟');
+        };
 
         window.previewBlindSpot = (examId,qIdx) => {
             const exam=window.allExams.find(e=>e.id===examId); if(!exam) return;
