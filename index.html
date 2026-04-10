@@ -809,15 +809,19 @@
             const questionsHtml = exam.questions.map((q, i) => `
                 <div style="margin-bottom:28px;page-break-inside:avoid;">
                     <div style="font-weight:700;font-size:15px;margin-bottom:10px;color:#000;">
-                        ${i+1}. ${q.q}
+                        ${/^\d+[.、．]/.test(q.q) ? q.q : `${i+1}. ${q.q}`}
                     </div>
                     <div style="padding-left:16px;">
-                        ${q.o.map((opt, oi) => `
-                            <div style="margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;">
+                        ${q.o.map((opt, oi) => {
+                            // 若選項文字已含字母前綴（如 "A. xxx"），不重複加
+                            const hasPrefix = /^[A-D][.、．]\s/.test(opt);
+                            const label = hasPrefix ? '' : `${['A','B','C','D'][oi]}. `;
+                            return `<div style="margin-bottom:6px;">
                                 <span style="font-weight:${q.a==oi?'700':'400'};color:${q.a==oi?'#00A19B':'#333'};">
-                                    ${['A','B','C','D'][oi]}. ${opt} ${q.a==oi?'✓':''}
+                                    ${label}${opt} ${q.a==oi?'✓':''}
                                 </span>
-                            </div>`).join('')}
+                            </div>`;
+                        }).join('')}
                     </div>
                     <div style="margin-top:10px;padding:10px 14px;background:#f0fdf9;border-left:3px solid #00A19B;border-radius:0 8px 8px 0;font-size:13px;color:#005f5a;">
                         <strong>解析：</strong>${q.i}
