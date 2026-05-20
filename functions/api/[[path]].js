@@ -15,7 +15,6 @@ export async function onRequest(context) {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // 管理員帳號密碼驗證函式
   const verifyAdmin = () => {
     const user = request.headers.get("X-Admin-Username");
     const pw = request.headers.get("X-Admin-Password");
@@ -29,7 +28,6 @@ export async function onRequest(context) {
       }), { status: 500, headers: corsHeaders });
     }
 
-    // --- 管理員登入驗證 ---
     if (path === "/api/verifyAdmin" && request.method === "POST") {
       if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD) {
         return new Response(JSON.stringify({ error: "伺服器尚未設定管理員帳密，請至 Cloudflare 環境變數設定 ADMIN_USERNAME 與 ADMIN_PASSWORD" }), { status: 500, headers: corsHeaders });
@@ -39,8 +37,6 @@ export async function onRequest(context) {
       }
       return new Response(JSON.stringify({ error: "帳號或密碼錯誤" }), { status: 401, headers: corsHeaders });
     }
-
-    // --- 1. 考卷管理功能 ---
 
     if (path === "/api/getExams") {
       const data = await env.STUDY_DB.get("all_exams");
@@ -74,7 +70,18 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // --- 2. 成績與數據統計功能 ---
+    if (path === "/api/renameExam" && request.method === "POST") {
+      if (!verifyAdmin()) {
+        return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });
+      }
+      const { id, title } = await request.json();
+      let exams = JSON.parse(await env.STUDY_DB.get("all_exams") || "[]");
+      const idx = exams.findIndex(ex => ex.id === id);
+      if (idx === -1) return new Response(JSON.stringify({ error: "找不到卷宗" }), { status: 404, headers: corsHeaders });
+      exams[idx].title = title;
+      await env.STUDY_DB.put("all_exams", JSON.stringify(exams));
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
 
     if (path === "/api/saveRecord" && request.method === "POST") {
       const record = await request.json();
@@ -94,7 +101,6 @@ export async function onRequest(context) {
       });
     }
 
-    // --- 3. AI 出題代理（管理員專用）---
     if (path === "/api/aiProxy" && request.method === "POST") {
       if (!verifyAdmin()) {
         return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });

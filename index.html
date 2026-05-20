@@ -286,7 +286,19 @@
                     <button onclick="window.switchAdminCat('日常')" class="admin-cat-btn" style="background:var(--sys-fill);color:var(--sys-label2);">日常</button>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:12px;">
-                    <input type="text" id="unitTitleInput" class="ios-input" placeholder="設定卷宗名稱">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">專業類別</div>
+                        <select id="unitCategory2" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
+                            <option value="">請選擇類別</option>
+                            <option value="對公">對公</option>
+                            <option value="存匯">存匯</option>
+                            <option value="零售">零售</option>
+                        </select>
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主題</div>
+                        <input type="text" id="unitTheme" class="ios-input" placeholder="例如：外匯基礎知識、定存利率計算" maxlength="20">
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">測試日期</div>
+                        <input type="date" id="unitDate" class="ios-input" style="color:var(--sys-label);">
+                    </div>
                     <div id="dropZone" class="drop-zone">
                         <div style="font-size:28px;margin-bottom:6px;">📂</div>
                         <div style="font-size:13px;font-weight:600;color:var(--sys-label2);text-transform:uppercase;letter-spacing:0.5px;">點擊導入素材</div>
@@ -392,6 +404,33 @@
                 <button onclick="window.executeAction()" class="btn-primary">開始執行</button>
             </div>
             <button onclick="window.closeModal()" class="btn-secondary" style="color:var(--sys-label2);">取消</button>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="renameModal" style="display:none;position:fixed;inset:0;z-index:1200;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)window.hideModal('renameModal')">
+        <div class="modal-overlay" style="position:absolute;inset:0;"></div>
+        <div class="modal-sheet" style="position:relative;width:100%;max-width:540px;padding:28px 24px 40px;">
+            <div style="width:36px;height:4px;background:var(--sys-separator);border-radius:2px;margin:0 auto 24px;"></div>
+            <div style="font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;letter-spacing:-0.3px;">✏️ 改名</div>
+            <input type="hidden" id="renameExamId">
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">專業類別</div>
+                <select id="renameCat" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
+                    <option value="">請選擇類別</option>
+                    <option value="對公">對公</option>
+                    <option value="存匯">存匯</option>
+                    <option value="零售">零售</option>
+                </select>
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主題</div>
+                <input type="text" id="renameTheme" class="ios-input" placeholder="例如：TMU 隨堂知識" maxlength="20">
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">測試日期</div>
+                <input type="date" id="renameDate" class="ios-input" style="color:var(--sys-label);">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="window.submitRename()" class="btn-primary">儲存</button>
+                <button onclick="window.hideModal('renameModal')" class="btn-secondary">取消</button>
+            </div>
         </div>
     </div>
 
@@ -545,7 +584,7 @@
         async function apiRequest(path, options = {}) {
             try {
                 // 管理員專用 API 自動帶上帳號+密碼 header
-                const adminPaths = ['/saveExam', '/deleteExam', '/getRecords', '/aiProxy'];
+                const adminPaths = ['/saveExam', '/deleteExam', '/getRecords', '/aiProxy', '/renameExam'];
                 if (adminPaths.some(p => path.startsWith(p))) {
                     options.headers = {
                         ...options.headers,
@@ -726,6 +765,7 @@
                     </div>
                     <div style="display:flex;gap:8px;">
                         <button onclick="window.downloadExam('${ex.id}')" style="background:rgba(0,161,155,0.1);border:none;color:var(--brand-green);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">📄 下載</button>
+                        <button onclick="window.openRenameModal('${ex.id}','${ex.title}')" style="background:rgba(90,90,200,0.1);border:none;color:#5A5AC8;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
                         <button onclick="window.deleteExam('${ex.id}','${ex.title}')" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
                     </div>
                 </div>`).join('');
@@ -736,6 +776,28 @@
                 const res = await apiRequest("/deleteExam",{method:'POST',body:JSON.stringify({id})});
                 if(res){window.showToast("已成功移除");window.renderPublishedManagement();}
             }
+        };
+
+        window.openRenameModal = (id, currentTitle) => {
+            document.getElementById('renameExamId').value = id;
+            const parts = currentTitle.split('｜');
+            document.getElementById('renameCat').value = parts[0] || '';
+            document.getElementById('renameTheme').value = parts[1] || currentTitle;
+            document.getElementById('renameDate').value = parts[2] || '';
+            window.showModal('renameModal');
+        };
+
+        window.submitRename = async () => {
+            const id = document.getElementById('renameExamId').value;
+            const cat = document.getElementById('renameCat').value;
+            const theme = document.getElementById('renameTheme').value.trim();
+            const date = document.getElementById('renameDate').value;
+            if(!cat) return window.showToast("請選擇專業類別");
+            if(!theme) return window.showToast("請輸入主題");
+            if(!date) return window.showToast("請選擇測試日期");
+            const title = `${cat}｜${theme}｜${date}`;
+            const res = await apiRequest("/renameExam", {method:'POST', body:JSON.stringify({id, title})});
+            if(res){ window.hideModal('renameModal'); window.showToast("已更新名稱"); window.renderPublishedManagement(); }
         };
 
         window.renderAnalytics = async () => {
@@ -1026,12 +1088,17 @@
                 };
             }
             publishBtn.onclick=async()=>{
-                const title=document.getElementById('unitTitleInput')?.value;
-                if(!title) return window.showToast("請先輸入卷宗名稱");
+                const cat2=document.getElementById('unitCategory2')?.value;
+                const theme=document.getElementById('unitTheme')?.value.trim();
+                const date=document.getElementById('unitDate')?.value;
+                if(!cat2) return window.showToast("請選擇專業類別");
+                if(!theme) return window.showToast("請輸入主題");
+                if(!date) return window.showToast("請選擇測試日期");
+                const title=`${cat2}｜${theme}｜${date}`;
                 if(window.tempEditData.length===0) return window.showToast("尚無題目可上傳");
                 publishBtn.disabled=true; publishBtn.innerText='同步中...';
                 const res=await apiRequest("/saveExam",{method:'POST',body:JSON.stringify({category:window.currentCategory,title,questions:window.tempEditData})});
-                if(res){window.showToast("發布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitTitleInput').value='';window.renderEditCards();window.renderPublishedManagement();}
+                if(res){window.showToast("發布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitCategory2').value='';document.getElementById('unitTheme').value='';document.getElementById('unitDate').value='';window.renderEditCards();window.renderPublishedManagement();}
                 publishBtn.disabled=false; publishBtn.innerText='發布並同步';
             };
         });
