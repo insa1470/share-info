@@ -939,17 +939,26 @@
             try {
                 const prompt=`你是一位資深銀行顧問。請根據素材產出共 ${count} 題。要求：必須包含 ${mcCount} 題「情境選擇題」以及 ${tfCount} 題「是非題」。是非題選項固定 ["正確", "錯誤"]。每題附深度解析。格式：純 JSON Array [ {"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。內容：\n${text}`;
                 window.updateAiProgress(40);
-                const res=await apiRequest("/aiProxy",{method:'POST',body:JSON.stringify({prompt})});
-                if(res){
-                    window.updateAiProgress(85);
-                    const content=res.choices?.[0]?.message?.content||"";
-                    const s=content.indexOf('['); const e=content.lastIndexOf(']')+1;
-                    window.tempEditData=window.tempEditData.concat(JSON.parse(content.substring(s,e)));
-                    window.renderEditCards();
-                    window.updateAiProgress(100);
-                    setTimeout(()=>{window.showToast('AI 出題完成');loader.classList.add('hidden');},600);
-                } else {loader.classList.add('hidden');}
-            } catch(e){window.showToast("AI 出題失敗，請重試");loader.classList.add('hidden');}
+                const httpRes = await fetch(API_BASE + "/aiProxy", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Username': window.adminUsername || '',
+                        'X-Admin-Password': window.adminPassword || ''
+                    },
+                    body: JSON.stringify({prompt})
+                });
+                const res = await httpRes.json();
+                if (!httpRes.ok) throw new Error(res.error || `伺服器錯誤 ${httpRes.status}`);
+                window.updateAiProgress(85);
+                const content=res.choices?.[0]?.message?.content||"";
+                const s=content.indexOf('['); const e=content.lastIndexOf(']')+1;
+                if(s===-1||e<=0) throw new Error("AI 回傳格式異常，請重試");
+                window.tempEditData=window.tempEditData.concat(JSON.parse(content.substring(s,e)));
+                window.renderEditCards();
+                window.updateAiProgress(100);
+                setTimeout(()=>{window.showToast('AI 出題完成');loader.classList.add('hidden');},600);
+            } catch(e){window.showToast("AI 出題失敗：" + e.message);loader.classList.add('hidden');}
         };
 
         window.executeManualAdd = (count) => {

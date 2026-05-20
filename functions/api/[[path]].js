@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  const DEEPSEEK_KEY = "sk-6b982e0502244ac1ae9ef3ee8fce7178";
+  const DEEPSEEK_KEY = env.DEEPSEEK_KEY;
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -103,6 +103,9 @@ export async function onRequest(context) {
     if (path === "/api/aiProxy" && request.method === "POST") {
       if (!verifyAdmin()) {
         return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });
+      }
+      if (!DEEPSEEK_KEY) {
+        return new Response(JSON.stringify({ error: "伺服器配置錯誤：DEEPSEEK_KEY 環境變數未設定，請至 Cloudflare Pages 設定。" }), { status: 500, headers: corsHeaders });
       }
       const body = await request.json();
       const aiResponse = await fetch("https://api.deepseek.com/chat/completions", {
