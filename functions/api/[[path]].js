@@ -115,7 +115,7 @@ export async function onRequest(context) {
           "Authorization": `Bearer ${DEEPSEEK_KEY}`
         },
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: "deepseek-v3",
           messages: [{ role: "user", content: body.prompt }],
           temperature: 0.7
         })
