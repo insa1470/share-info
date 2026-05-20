@@ -42,7 +42,6 @@ export async function onRequest(context) {
 
     // --- 1. 考卷管理功能 ---
 
-    // 取得所有考卷清單（公開，學員可存取）
     if (path === "/api/getExams") {
       const data = await env.STUDY_DB.get("all_exams");
       return new Response(data || "[]", {
@@ -50,7 +49,6 @@ export async function onRequest(context) {
       });
     }
 
-    // 儲存/發布新考卷（管理員專用）
     if (path === "/api/saveExam" && request.method === "POST") {
       if (!verifyAdmin()) {
         return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });
@@ -62,7 +60,6 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // 刪除考卷（管理員專用）
     if (path === "/api/deleteExam" && request.method === "POST") {
       if (!verifyAdmin()) {
         return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });
@@ -79,7 +76,6 @@ export async function onRequest(context) {
 
     // --- 2. 成績與數據統計功能 ---
 
-    // 儲存同仁完考紀錄（公開，學員可存取）
     if (path === "/api/saveRecord" && request.method === "POST") {
       const record = await request.json();
       let records = JSON.parse(await env.STUDY_DB.get("all_records") || "[]");
@@ -88,7 +84,6 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // 獲取統計看板數據（管理員專用）
     if (path === "/api/getRecords") {
       if (!verifyAdmin()) {
         return new Response(JSON.stringify({ error: "未授權" }), { status: 401, headers: corsHeaders });
@@ -115,7 +110,7 @@ export async function onRequest(context) {
           "Authorization": `Bearer ${DEEPSEEK_KEY}`
         },
         body: JSON.stringify({
-          model: "deepseek-v3",
+          model: "deepseek-v4-flash",
           messages: [{ role: "user", content: body.prompt }],
           temperature: 0.7
         })
