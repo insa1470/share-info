@@ -1042,6 +1042,7 @@
                         <button onclick="window.tempEditData.splice(${i},1);window.renderEditCards();" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
                     </div>
                     <input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="ios-input" style="margin-bottom:12px;font-weight:500;" placeholder="題目內容">
+                    <div style="font-size:12px;font-weight:600;color:var(--brand-green);padding-left:2px;margin-bottom:6px;">◎ 點選左側圓點標記正確答案</div>
                     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
                         ${d.o.map((o,oi)=>`
                             <div style="display:flex;align-items:center;gap:10px;background:var(--sys-fill);padding:10px 14px;border-radius:10px;border:1.5px solid ${d.a==oi?'var(--brand-green)':'transparent'};">
