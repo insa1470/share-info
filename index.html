@@ -782,7 +782,7 @@
                             <div>
                                 <span style="font-size:11px;font-weight:600;background:var(--sys-fill);color:var(--sys-label2);padding:2px 8px;border-radius:4px;margin-bottom:6px;display:inline-block;">${ex.category}</span>
                                 <div style="font-size:16px;font-weight:600;letter-spacing:-0.2px;">${ex.title}</div>
-                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與 · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};">${avg} 分</span></div>
+                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與 · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};"> ${avg} 分</span></div>
                             </div>
                         </div>
                         <div style="margin-bottom:12px;">${memberRows}</div>
@@ -863,7 +863,7 @@
             if (!exams || !records) return;
 
             const today = new Date().toLocaleDateString('zh-TW');
-            let csv = '\uFEFF'; // BOM，讓 Excel 正確顯示中文
+            let csv = '﻿'; // BOM，讓 Excel 正確顯示中文
             csv += `玉山銀行精進學習管理報表,匯出日期：${today}\n\n`;
             csv += `卷宗名稱,類別,參與人數,平均分數,最高分,最低分\n`;
 
@@ -929,10 +929,14 @@
             btn.classList.add('count-btn-active');
             document.getElementById('startActionContainer').style.display='block';
         };
-        window.executeAction = async () => { const c=window.selectedCount; const a=window.pendingAction; window.closeModal(); if(a==='ai') await window.executeAiGen(c); else window.executeManualAdd(c); };
+        let _aiGenerating = false;
+        window.executeAction = async () => { if(_aiGenerating) return; const c=window.selectedCount; const a=window.pendingAction; window.closeModal(); if(a==='ai') await window.executeAiGen(c); else window.executeManualAdd(c); };
 
         window.executeAiGen = async (count) => {
+            if(_aiGenerating) return;
             const text=document.getElementById('rawText')?.value; if(!text) return window.showToast("請先提供素材內容");
+            _aiGenerating = true;
+            const btn=document.querySelector('#startActionContainer .btn-primary'); if(btn) btn.disabled=true;
             const loader=document.getElementById('aiLoader'); loader.classList.remove('hidden');
             const mcCount=Math.ceil(count*0.3); const tfCount=count-mcCount;
             window.updateAiProgress(10);
@@ -959,6 +963,7 @@
                 window.updateAiProgress(100);
                 setTimeout(()=>{window.showToast('AI 出題完成');loader.classList.add('hidden');},600);
             } catch(e){window.showToast("AI 出題失敗：" + e.message);loader.classList.add('hidden');}
+            finally { _aiGenerating=false; if(btn) btn.disabled=false; }
         };
 
         window.executeManualAdd = (count) => {
