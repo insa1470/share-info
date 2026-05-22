@@ -298,6 +298,8 @@
                         <input type="text" id="unitTheme" class="ios-input" placeholder="例如：外匯基礎知識、定存利率計算" maxlength="20">
                         <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">測試日期</div>
                         <input type="date" id="unitDate" class="ios-input" style="color:var(--sys-label);">
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">應參與人數</div>
+                        <input type="number" id="unitExpected" class="ios-input" placeholder="例如：20" min="1" style="color:var(--sys-label);">
                     </div>
                     <div id="dropZone" class="drop-zone">
                         <div style="font-size:28px;margin-bottom:6px;">📂</div>
@@ -813,6 +815,8 @@
                 const exRecs=records.filter(r=>r.examId===ex.id);
                 const count=exRecs.length;
                 const avg=(exRecs.reduce((s,c)=>s+(c.score/c.total*100),0)/count).toFixed(1);
+                const expected=ex.expectedCount||0;
+                const participationRate=expected>0?Math.round(count/expected*100):null;
                 const threshold=Math.round(count*0.3);
                 const errorCounts=new Array(ex.questions.length).fill(0);
                 exRecs.forEach(r=>(r.wrongIndices||[]).forEach(idx=>errorCounts[idx]++));
@@ -844,7 +848,7 @@
                             <div>
                                 <span style="font-size:11px;font-weight:600;background:var(--sys-fill);color:var(--sys-label2);padding:2px 8px;border-radius:4px;margin-bottom:6px;display:inline-block;">${ex.category}</span>
                                 <div style="font-size:16px;font-weight:600;letter-spacing:-0.2px;">${ex.title}</div>
-                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與 · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};"> ${avg} 分</span></div>
+                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與${participationRate!==null?` · 參與率 <span style="font-weight:700;color:${participationRate<60?'#FF3B30':participationRate<80?'#F59E0B':'var(--brand-green)'}">${participationRate}%</span>`:`<span style="color:var(--sys-label3);font-size:12px;"> （未設應參與人數）</span>`} · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};"> ${avg} 分</span></div>
                             </div>
                         </div>
                         <div style="margin-bottom:12px;">${memberRows}</div>
@@ -1098,8 +1102,9 @@
                 const title=`${cat2}｜${theme}｜${date}`;
                 if(window.tempEditData.length===0) return window.showToast("尚無題目可上傳");
                 publishBtn.disabled=true; publishBtn.innerText='同步中...';
-                const res=await apiRequest("/saveExam",{method:'POST',body:JSON.stringify({category:window.currentCategory,title,questions:window.tempEditData})});
-                if(res){window.showToast("發布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitCategory2').value='';document.getElementById('unitTheme').value='';document.getElementById('unitDate').value='';window.renderEditCards();window.renderPublishedManagement();}
+                const expectedCount = parseInt(document.getElementById('unitExpected')?.value) || 0;
+                const res=await apiRequest("/saveExam",{method:'POST',body:JSON.stringify({category:window.currentCategory,title,expectedCount,questions:window.tempEditData})});
+                if(res){window.showToast("發布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitCategory2').value='';document.getElementById('unitTheme').value='';document.getElementById('unitDate').value='';document.getElementById('unitExpected').value='';window.renderEditCards();window.renderPublishedManagement();}
                 publishBtn.disabled=false; publishBtn.innerText='發布並同步';
             };
         });
