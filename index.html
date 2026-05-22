@@ -179,7 +179,6 @@
         .page-btn:active { background: rgba(0,161,155,0.15); }
         .page-btn:disabled { opacity: 0.25; pointer-events: none; }
 
-        /* 专业筛选按钮样式 */
         .exam-filter-btn {
             padding: 7px 16px;
             border-radius: 20px;
@@ -258,7 +257,6 @@
         </button>
         <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;" id="unitViewTitle">考卷目录</div>
         <div style="font-size:14px;color:var(--sys-label2);margin-bottom:16px;">点选考卷开始练习</div>
-        <!-- 专业筛选按钮列 -->
         <div id="examCategoryFilter" style="display:flex;gap:8px;padding:0 0 16px 0;overflow-x:auto;">
             <button onclick="window.setExamFilter('')" id="filterAll" class="exam-filter-btn exam-filter-btn-active">全部</button>
             <button onclick="window.setExamFilter('对公')" id="filterDG" class="exam-filter-btn">对公</button>
@@ -315,7 +313,7 @@
                 <div style="display:flex;flex-direction:column;gap:12px;">
                     <div style="display:flex;flex-direction:column;gap:8px;">
                         <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">专业类别</div>
-                        <select id="unitCategory2" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
+                        <select id="unitCategory2" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
                             <option value="">请选择类别</option>
                             <option value="对公">对公</option>
                             <option value="存汇">存汇</option>
@@ -445,7 +443,7 @@
             <input type="hidden" id="renameExamId">
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
                 <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">专业类别</div>
-                <select id="renameCat" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
+                <select id="renameCat" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
                     <option value="">请选择类别</option>
                     <option value="对公">对公</option>
                     <option value="存汇">存汇</option>
@@ -484,7 +482,6 @@
         window.showModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'flex'; };
         window.hideModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
 
-        // 昵称管理
         window.userName = localStorage.getItem('user_name') || '';
 
         window.saveNickname = () => {
@@ -499,7 +496,6 @@
             window.showToast('欢迎，' + name + ' 🎉');
         };
 
-        // 管理员登入逻辑
         window.adminPassword = sessionStorage.getItem('adminPw') || '';
         window.adminUsername = sessionStorage.getItem('adminUser') || '';
 
@@ -517,59 +513,26 @@
             const loginBtn = document.getElementById('adminLoginBtn');
             const user = userInput.value.trim();
             const pw = pwInput.value.trim();
-
-            if (!user || !pw) {
-                errEl.innerText = '请填写账号与密码';
-                errEl.style.display = 'block';
-                return;
-            }
-
-            // 显示loading状态
-            loginBtn.disabled = true;
-            loginBtn.innerText = '验证中...';
-            errEl.style.display = 'none';
-
+            if (!user || !pw) { errEl.innerText = '请填写账号与密码'; errEl.style.display = 'block'; return; }
+            loginBtn.disabled = true; loginBtn.innerText = '验证中...'; errEl.style.display = 'none';
             try {
-                const res = await fetch(API_BASE + '/verifyAdmin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Username': user,
-                        'X-Admin-Password': pw
-                    }
-                });
+                const res = await fetch(API_BASE + '/verifyAdmin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': user, 'X-Admin-Password': pw } });
                 if (res.ok) {
-                    window.adminPassword = pw;
-                    window.adminUsername = user;
-                    sessionStorage.setItem('adminPw', pw);
-                    sessionStorage.setItem('adminUser', user);
-                    window.cancelAdminLogin();
-                    window.isAdminView = true;
-                    window.switchView('adminSection');
+                    window.adminPassword = pw; window.adminUsername = user;
+                    sessionStorage.setItem('adminPw', pw); sessionStorage.setItem('adminUser', user);
+                    window.cancelAdminLogin(); window.isAdminView = true; window.switchView('adminSection');
                     const btn = document.getElementById('adminToggle');
-                    btn.innerText = '退出';
-                    btn.style.background = 'rgba(0,161,155,0.12)';
-                    btn.style.color = 'var(--brand-green)';
-                    window.switchAdminTab('management');
-                    window.showToast('欢迎回来，' + user);
+                    btn.innerText = '退出'; btn.style.background = 'rgba(0,161,155,0.12)'; btn.style.color = 'var(--brand-green)';
+                    window.switchAdminTab('management'); window.showToast('欢迎回来，' + user);
                 } else {
-                    errEl.innerText = '账号或密码错误，请再试一次';
-                    errEl.style.display = 'block';
-                    pwInput.value = '';
-                    pwInput.focus();
+                    errEl.innerText = '账号或密码错误，请再试一次'; errEl.style.display = 'block'; pwInput.value = ''; pwInput.focus();
                 }
-            } catch(e) {
-                errEl.innerText = '连线异常，请稍后再试';
-                errEl.style.display = 'block';
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.innerText = '登入';
-            }
+            } catch(e) { errEl.innerText = '连线异常，请稍后再试'; errEl.style.display = 'block'; }
+            finally { loginBtn.disabled = false; loginBtn.innerText = '登入'; }
         };
 
         window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            if (!t) return;
+            const t = document.getElementById('toast'); if (!t) return;
             t.innerText = msg; t.style.opacity = '1';
             clearTimeout(window._toastTimer);
             window._toastTimer = setTimeout(() => t.style.opacity = '0', 3500);
@@ -589,20 +552,11 @@
         window.handleAdminToggle = () => {
             const btn = document.getElementById('adminToggle');
             if (window.isAdminView) {
-                // 退出
-                window.isAdminView = false;
-                window.adminPassword = '';
-                sessionStorage.removeItem('adminPw');
-                window.switchView('learnerHome');
-                btn.innerText = '管理员';
-                btn.style.background = 'var(--sys-fill)';
-                btn.style.color = 'var(--sys-label2)';
+                window.isAdminView = false; window.adminPassword = ''; sessionStorage.removeItem('adminPw');
+                window.switchView('learnerHome'); btn.innerText = '管理员'; btn.style.background = 'var(--sys-fill)'; btn.style.color = 'var(--sys-label2)';
             } else {
-                // 显示登入框
-                document.getElementById('adminLoginError').style.display = 'none';
-                document.getElementById('adminPasswordInput').value = '';
-                window.showModal('adminLoginModal');
-                setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
+                document.getElementById('adminLoginError').style.display = 'none'; document.getElementById('adminPasswordInput').value = '';
+                window.showModal('adminLoginModal'); setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
             }
         };
 
@@ -612,14 +566,9 @@
 
         async function apiRequest(path, options = {}) {
             try {
-                // 管理员专用 API 自动带上账号+密码 header
                 const adminPaths = ['/saveExam', '/deleteExam', '/getRecords', '/aiProxy', '/renameExam'];
                 if (adminPaths.some(p => path.startsWith(p))) {
-                    options.headers = {
-                        ...options.headers,
-                        'X-Admin-Username': window.adminUsername || '',
-                        'X-Admin-Password': window.adminPassword || ''
-                    };
+                    options.headers = { ...options.headers, 'X-Admin-Username': window.adminUsername || '', 'X-Admin-Password': window.adminPassword || '' };
                 }
                 const res = await fetch(API_BASE + path, options);
                 const data = await res.json();
@@ -629,51 +578,30 @@
         }
 
         async function checkConnection() {
-            const dot = document.getElementById('netStatus');
-            const txt = document.getElementById('netStatusText');
-            try {
-                const res = await fetch(API_BASE + "/getExams");
-                if (res.ok) { dot.style.background = '#34C759'; txt.innerText = 'Online'; }
-            } catch (e) { dot.style.background = '#FF3B30'; txt.innerText = 'Offline'; }
+            const dot = document.getElementById('netStatus'); const txt = document.getElementById('netStatusText');
+            try { const res = await fetch(API_BASE + "/getExams"); if (res.ok) { dot.style.background = '#34C759'; txt.innerText = 'Online'; } }
+            catch (e) { dot.style.background = '#FF3B30'; txt.innerText = 'Offline'; }
         }
 
-        // 专业筛选功能
         window.setExamFilter = (cat) => {
-            window.currentExamFilter = cat;
-            window.unitCurrentPage = 0;
-            // 更新按钮样式
-            const allBtn = document.getElementById('filterAll');
-            const dgBtn = document.getElementById('filterDG');
-            const chBtn = document.getElementById('filterCH');
-            const lsBtn = document.getElementById('filterLS');
-            [allBtn, dgBtn, chBtn, lsBtn].forEach(btn => {
-                if (btn) btn.classList.remove('exam-filter-btn-active');
-            });
+            window.currentExamFilter = cat; window.unitCurrentPage = 0;
+            const allBtn = document.getElementById('filterAll'); const dgBtn = document.getElementById('filterDG');
+            const chBtn = document.getElementById('filterCH'); const lsBtn = document.getElementById('filterLS');
+            [allBtn, dgBtn, chBtn, lsBtn].forEach(btn => { if (btn) btn.classList.remove('exam-filter-btn-active'); });
             if (cat === '') { if (allBtn) allBtn.classList.add('exam-filter-btn-active'); }
             else if (cat === '对公') { if (dgBtn) dgBtn.classList.add('exam-filter-btn-active'); }
             else if (cat === '存汇') { if (chBtn) chBtn.classList.add('exam-filter-btn-active'); }
             else if (cat === '零售') { if (lsBtn) lsBtn.classList.add('exam-filter-btn-active'); }
-            // 重新渲染考卷列表
             window.renderUnitSelect();
         };
 
         window.onSelectCategory = async (cat) => {
-            window.currentCategory = cat; window.unitCurrentPage = 0;
-            window.currentExamFilter = '';
-            // 重置筛选按钮
-            ['filterAll','filterDG','filterCH','filterLS'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.classList.remove('exam-filter-btn-active');
-            });
-            const allBtn = document.getElementById('filterAll');
-            if (allBtn) allBtn.classList.add('exam-filter-btn-active');
-
+            window.currentCategory = cat; window.unitCurrentPage = 0; window.currentExamFilter = '';
+            ['filterAll','filterDG','filterCH','filterLS'].forEach(id => { const btn = document.getElementById(id); if (btn) btn.classList.remove('exam-filter-btn-active'); });
+            const allBtn = document.getElementById('filterAll'); if (allBtn) allBtn.classList.add('exam-filter-btn-active');
             document.getElementById('unitViewTitle').innerText = cat === '专业' ? '专业知识' : '日常规范';
-
-            // 根据分类决定是否显示专业筛选
             const filterBar = document.getElementById('examCategoryFilter');
             if (filterBar) filterBar.style.display = cat === '专业' ? 'flex' : 'none';
-
             window.switchView('unitSelectView');
             window.showToast('同步数据中...');
             const data = await apiRequest("/getExams");
@@ -682,10 +610,10 @@
 
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList'); if (!list) return;
-            let exams = (window.allExams || []).filter(e => e.category === window.currentCategory);
-            // 修改2：新的排前面
+            const catAliases = {'专业':['专业','專業'],'日常':['日常','日常規範']};
+            const validCats = catAliases[window.currentCategory] || [window.currentCategory];
+            let exams = (window.allExams || []).filter(e => validCats.includes(e.category));
             exams = [...exams].reverse();
-            // 修改3：专业筛选
             let filtered = exams;
             if (window.currentExamFilter) {
                 filtered = exams.filter(e => e.title && e.title.startsWith(window.currentExamFilter + '｜'));
@@ -726,13 +654,8 @@
             window.hideModal('resumeModal');
             const ex = window.allExams.find(e => e.id === window.currentExamId);
             window.quizData = ex.questions;
-            if (shouldResume) {
-                const s = window.loadProgress(window.currentExamId);
-                window.currentIdx = s.currentIdx; window.score = s.score; window.wrongIndices = s.wrongIndices || [];
-            } else {
-                window.currentIdx = 0; window.score = 0; window.wrongIndices = [];
-                window.clearProgress(window.currentExamId);
-            }
+            if (shouldResume) { const s = window.loadProgress(window.currentExamId); window.currentIdx = s.currentIdx; window.score = s.score; window.wrongIndices = s.wrongIndices || []; }
+            else { window.currentIdx = 0; window.score = 0; window.wrongIndices = []; window.clearProgress(window.currentExamId); }
             window.switchView('learnerQuiz');
             document.getElementById('result-screen').classList.add('hidden');
             document.getElementById('quizContentArea').classList.remove('hidden');
@@ -779,10 +702,8 @@
         window.handleSelect = (idx) => {
             const correct = window.quizData[window.currentIdx].a;
             document.querySelectorAll('.quiz-btn').forEach(b => b.disabled = true);
-            const fbIdx = document.getElementById(`fb-${idx}`);
-            const fbCorr = document.getElementById(`fb-${correct}`);
-            const btnIdx = document.getElementById(`qbtn-${idx}`);
-            const btnCorr = document.getElementById(`qbtn-${correct}`);
+            const fbIdx = document.getElementById(`fb-${idx}`); const fbCorr = document.getElementById(`fb-${correct}`);
+            const btnIdx = document.getElementById(`qbtn-${idx}`); const btnCorr = document.getElementById(`qbtn-${correct}`);
             if (idx == correct) {
                 window.score++;
                 btnIdx.style.background='#F0FDF4'; btnIdx.style.borderColor='#86EFAC'; btnIdx.style.color='#15803D';
@@ -825,8 +746,9 @@
             const area = document.getElementById('publishedExamsList');
             area.innerHTML = `<div style="padding:20px;text-align:center;color:var(--sys-label3);font-size:14px;">同步中...</div>`;
             const data = await apiRequest("/getExams") || []; window.allExams = data;
-            let filtered = data.filter(e => e.category===window.currentCategory);
-            // 修改2：已发布卷宗新的排前面
+            const catAliases2 = {'专业':['专业','專業'],'日常':['日常','日常規範']};
+            const validCats2 = catAliases2[window.currentCategory] || [window.currentCategory];
+            let filtered = data.filter(e => validCats2.includes(e.category));
             filtered = [...filtered].reverse();
             if(filtered.length===0){area.innerHTML=`<div style="padding:28px 20px;text-align:center;color:var(--sys-label3);font-size:14px;border:1.5px dashed var(--sys-separator);border-radius:var(--sys-radius-md);">目前无单元</div>`;return;}
             area.innerHTML = filtered.map((ex,i)=>`
@@ -898,7 +820,6 @@
                             ${blindSpots.map(bs=>`<button onclick="window.previewBlindSpot('${ex.id}',${bs.i})" class="blindspot-tag">Q${bs.i+1} · ${bs.e}人</button>`).join('')}
                         </div>
                     </div>`:'';
-                // 个人成绩列表
                 const memberRows = exRecs.map(r => {
                     const pts = Math.round(r.score / r.total * 100);
                     const name = r.userName || '匿名';
@@ -911,7 +832,6 @@
                         </div>
                     </div>`;
                 }).join('');
-
                 return `
                     <div class="analytics-card">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
@@ -937,10 +857,8 @@
         window.prevDashPage = () => {if(window.dashboardCurrentPage>0){window.dashboardCurrentPage--;window.renderAnalytics();}};
         window.nextDashPage = () => {window.dashboardCurrentPage++;window.renderAnalytics();};
 
-        // ── 下载题目（HTML 列印版）──
         window.downloadExam = (examId) => {
-            const exam = window.allExams.find(e => e.id === examId);
-            if (!exam) return;
+            const exam = window.allExams.find(e => e.id === examId); if (!exam) return;
             const today = new Date().toLocaleDateString('zh-CN');
             const questionsHtml = exam.questions.map((q, i) => `
                 <div style="margin-bottom:28px;page-break-inside:avoid;">
@@ -949,87 +867,44 @@
                     </div>
                     <div style="padding-left:16px;">
                         ${q.o.map((opt, oi) => {
-                            // 若选项文字已含字母前缀（如 "A. xxx"），不重复加
                             const hasPrefix = /^[A-D][.、．]\s/.test(opt);
                             const label = hasPrefix ? '' : `${['A','B','C','D'][oi]}. `;
-                            return `<div style="margin-bottom:6px;">
-                                <span style="font-weight:${q.a==oi?'700':'400'};color:${q.a==oi?'#00A19B':'#333'};">
-                                    ${label}${opt} ${q.a==oi?'✓':''}
-                                </span>
-                            </div>`;
+                            return `<div style="margin-bottom:6px;"><span style="font-weight:${q.a==oi?'700':'400'};color:${q.a==oi?'#00A19B':'#333'};">${label}${opt} ${q.a==oi?'✓':''}</span></div>`;
                         }).join('')}
                     </div>
                     <div style="margin-top:10px;padding:10px 14px;background:#f0fdf9;border-left:3px solid #00A19B;border-radius:0 8px 8px 0;font-size:13px;color:#005f5a;">
                         <strong>解析：</strong>${q.i}
                     </div>
                 </div>`).join('<hr style="border:none;border-top:1px dashed #ddd;margin:20px 0;">');
-
-            const html = `<!DOCTYPE html>
-<html lang="zh-Hans">
-<head>
-<meta charset="UTF-8">
-<title>${exam.title}</title>
-<style>
-  body { font-family: -apple-system, 'Noto Sans TC', sans-serif; max-width: 720px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; }
-  h1 { font-size: 22px; color: #00A19B; margin-bottom: 4px; }
-  .meta { font-size: 13px; color: #888; margin-bottom: 32px; border-bottom: 2px solid #00A19B; padding-bottom: 12px; }
-  @media print { body { margin: 20px; } button { display: none; } }
-</style>
-</head>
-<body>
-  <h1>${exam.title}</h1>
-  <div class="meta">类别：${exam.category} ｜ 题数：${exam.questions.length} 题 ｜ 汇出日期：${today}</div>
-  <button onclick="window.print()" style="margin-bottom:24px;padding:10px 20px;background:#00A19B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🖨️ 列印 / 另存 PDF</button>
-  ${questionsHtml}
-</body>
-</html>`;
-
+            const html = `<!DOCTYPE html><html lang="zh-Hans"><head><meta charset="UTF-8"><title>${exam.title}</title><style>body{font-family:-apple-system,'Noto Sans TC',sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#1a1a1a;}h1{font-size:22px;color:#00A19B;margin-bottom:4px;}.meta{font-size:13px;color:#888;margin-bottom:32px;border-bottom:2px solid #00A19B;padding-bottom:12px;}@media print{body{margin:20px;}button{display:none;}}</style></head><body><h1>${exam.title}</h1><div class="meta">类别：${exam.category} ｜ 题数：${exam.questions.length} 题 ｜ 汇出日期：${today}</div><button onclick="window.print()" style="margin-bottom:24px;padding:10px 20px;background:#00A19B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🖨️ 列印 / 另存 PDF</button>${questionsHtml}</body></html>`;
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${exam.title}_题目.html`;
-            a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${exam.title}_题目.html`; a.click();
             window.showToast('题目已下载，用浏览器开启可列印');
         };
 
-        // ── 汇出管理报表（CSV）──
         window.exportReport = async () => {
             window.showToast('报表产制中...');
             const [exams, records] = await Promise.all([apiRequest("/getExams"), apiRequest("/getRecords")]);
             if (!exams || !records) return;
-
             const today = new Date().toLocaleDateString('zh-CN');
-            let csv = '﻿'; // BOM，让 Excel 正确显示中文
-            csv += `玉山银行精进学习管理报表,汇出日期：${today}\n\n`;
+            let csv = '﻿';
+            csv += `精进学习管理报表,汇出日期：${today}\n\n`;
             csv += `卷宗名称,类别,参与人数,平均分数,最高分,最低分\n`;
-
             exams.forEach(ex => {
-                const exRecs = records.filter(r => r.examId === ex.id);
-                if (exRecs.length === 0) return;
+                const exRecs = records.filter(r => r.examId === ex.id); if (exRecs.length === 0) return;
                 const scores = exRecs.map(r => Math.round(r.score / r.total * 100));
                 const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
-                const max = Math.max(...scores);
-                const min = Math.min(...scores);
-                csv += `"${ex.title}","${ex.category}",${exRecs.length},${avg}%,${max}%,${min}%\n`;
+                csv += `"${ex.title}","${ex.category}",${exRecs.length},${avg}%,${Math.max(...scores)}%,${Math.min(...scores)}%\n`;
             });
-
-            csv += `\n同仁答题明细\n`;
-            csv += `姓名,卷宗名称,类别,分数,答题日期\n`;
-
+            csv += `\n同仁答题明细\n姓名,卷宗名称,类别,分数,答题日期\n`;
             records.forEach(r => {
-                const ex = exams.find(e => e.id === r.examId);
-                if (!ex) return;
+                const ex = exams.find(e => e.id === r.examId); if (!ex) return;
                 const pts = Math.round(r.score / r.total * 100);
-                const date = new Date(r.t).toLocaleDateString('zh-CN');
-                const name = r.userName || '匿名';
-                csv += `"${name}","${ex.title}","${ex.category}",${pts}%,"${date}"\n`;
+                csv += `"${r.userName||'匿名'}","${ex.title}","${ex.category}",${pts}%,"${new Date(r.t).toLocaleDateString('zh-CN')}"\n`;
             });
-
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `玉山精进学习报表_${today.replace(/\//g,'-')}.csv`;
-            a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = `精进学习报表_${today.replace(/\//g,'-')}.csv`; a.click();
             window.showToast('报表已下载，可用 Excel 开启');
         };
 
@@ -1040,31 +915,17 @@
                 <div style="font-size:12px;font-weight:700;color:var(--brand-green);text-transform:uppercase;letter-spacing:0.5px;">${exam.category} · ${exam.title}</div>
                 <div style="font-size:17px;font-weight:600;line-height:1.5;letter-spacing:-0.2px;">${q.q}</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    ${q.o.map((opt,i)=>`
-                        <div style="padding:12px 14px;border-radius:10px;font-size:14px;
-                            background:${q.a==i?'#F0FDF4':'var(--sys-fill)'};
-                            border:1px solid ${q.a==i?'#86EFAC':'transparent'};
-                            color:${q.a==i?'#15803D':'var(--sys-label2)'};
-                            font-weight:${q.a==i?'600':'400'};">
-                            ${opt}${q.a==i?' ✓':''}
-                        </div>`).join('')}
+                    ${q.o.map((opt,i)=>`<div style="padding:12px 14px;border-radius:10px;font-size:14px;background:${q.a==i?'#F0FDF4':'var(--sys-fill)'};border:1px solid ${q.a==i?'#86EFAC':'transparent'};color:${q.a==i?'#15803D':'var(--sys-label2)'};font-weight:${q.a==i?'600':'400'};">${opt}${q.a==i?' ✓':''}</div>`).join('')}
                 </div>
                 <div class="expl-box"><div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:6px;">解析</div>${q.i}</div>`;
             window.showModal('previewModal');
         };
 
-        window.updateAiProgress = (pct) => {
-            const bar=document.getElementById('aiProgressBar'); const txt=document.getElementById('aiProgressPercent');
-            if(bar) bar.style.width=pct+'%'; if(txt) txt.innerText=pct+'%';
-        };
+        window.updateAiProgress = (pct) => { const bar=document.getElementById('aiProgressBar'); const txt=document.getElementById('aiProgressPercent'); if(bar) bar.style.width=pct+'%'; if(txt) txt.innerText=pct+'%'; };
         window.openCountModal = (action) => { window.pendingAction=action; window.showModal('countModal'); };
         window.closeModal = () => { window.hideModal('countModal'); document.getElementById('startActionContainer').style.display='none'; };
-        window.selectCount = (count,btn) => {
-            window.selectedCount=count;
-            document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('count-btn-active'));
-            btn.classList.add('count-btn-active');
-            document.getElementById('startActionContainer').style.display='block';
-        };
+        window.selectCount = (count,btn) => { window.selectedCount=count; document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('count-btn-active')); btn.classList.add('count-btn-active'); document.getElementById('startActionContainer').style.display='block'; };
+
         let _aiGenerating = false;
         window.executeAction = async () => { if(_aiGenerating) return; const c=window.selectedCount; const a=window.pendingAction; window.closeModal(); if(a==='ai') await window.executeAiGen(c); else window.executeManualAdd(c); };
 
@@ -1079,15 +940,7 @@
             try {
                 const prompt=`你是一位资深银行顾问。请根据素材产出共 ${count} 题。要求：必须包含 ${mcCount} 题「情境选择题」以及 ${tfCount} 题「是非题」。是非题选项固定 ["正确", "错误"]。每题附深度解析。格式：纯 JSON Array [ {"q":"题目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。内容：\n${text}`;
                 window.updateAiProgress(40);
-                const httpRes = await fetch(API_BASE + "/aiProxy", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Username': window.adminUsername || '',
-                        'X-Admin-Password': window.adminPassword || ''
-                    },
-                    body: JSON.stringify({prompt})
-                });
+                const httpRes = await fetch(API_BASE + "/aiProxy", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': window.adminUsername || '', 'X-Admin-Password': window.adminPassword || '' }, body: JSON.stringify({prompt}) });
                 const res = await httpRes.json();
                 if (!httpRes.ok) throw new Error(res.error || `服务器错误 ${httpRes.status}`);
                 window.updateAiProgress(85);
@@ -1095,8 +948,7 @@
                 const s=content.indexOf('['); const e=content.lastIndexOf(']')+1;
                 if(s===-1||e<=0) throw new Error("AI 回传格式异常，请重试");
                 window.tempEditData=window.tempEditData.concat(JSON.parse(content.substring(s,e)));
-                window.renderEditCards();
-                window.updateAiProgress(100);
+                window.renderEditCards(); window.updateAiProgress(100);
                 setTimeout(()=>{window.showToast('AI 出题完成');loader.classList.add('hidden');},600);
             } catch(e){window.showToast("AI 出题失败：" + e.message);loader.classList.add('hidden');}
             finally { _aiGenerating=false; if(btn) btn.disabled=false; }
@@ -1130,18 +982,13 @@
 
         window.switchAdminCat = (cat) => {
             window.currentCategory=cat;
-            document.querySelectorAll('.admin-cat-btn').forEach(btn=>{
-                const isActive=btn.innerText===cat;
-                btn.style.background=isActive?'var(--brand-green)':'var(--sys-fill)';
-                btn.style.color=isActive?'#fff':'var(--sys-label2)';
-            });
+            document.querySelectorAll('.admin-cat-btn').forEach(btn=>{ const isActive=btn.innerText===cat; btn.style.background=isActive?'var(--brand-green)':'var(--sys-fill)'; btn.style.color=isActive?'#fff':'var(--sys-label2)'; });
             window.tempEditData=[]; window.renderEditCards();
             if(window.isAdminView) window.renderPublishedManagement();
         };
 
         document.addEventListener('DOMContentLoaded',()=>{
             checkConnection();
-            // 检查是否已有昵称
             if (!window.userName) {
                 window.showModal('welcomeModal');
                 setTimeout(() => document.getElementById('nicknameInput').focus(), 300);
