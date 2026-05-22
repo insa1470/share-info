@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hans">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智慧學習平台</title>
+    <title>智慧学习平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -178,6 +178,25 @@
         .page-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--sys-fill); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--brand-green); transition: background 0.15s; }
         .page-btn:active { background: rgba(0,161,155,0.15); }
         .page-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+        /* 专业筛选按钮样式 */
+        .exam-filter-btn {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            background: var(--sys-fill);
+            color: var(--sys-label2);
+        }
+        .exam-filter-btn-active {
+            background: var(--brand-green) !important;
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
@@ -185,11 +204,12 @@
     <script>
         const API_BASE = window.location.origin + "/api";
         window.allExams = []; window.allRecords = []; window.tempEditData = []; window.quizData = [];
-        window.currentCategory = "專業"; window.currentIdx = 0; window.score = 0;
+        window.currentCategory = "专业"; window.currentIdx = 0; window.score = 0;
         window.wrongIndices = []; window.currentExamId = "";
         window.isAdminView = false; window.adminTab = 'management';
         window.unitPageSize = 4; window.unitCurrentPage = 0;
         window.dashboardPageSize = 3; window.dashboardCurrentPage = 0;
+        window.currentExamFilter = '';
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
 
@@ -202,42 +222,49 @@
                 <span id="netStatusText" style="font-size:11px;color:var(--sys-label3);font-weight:500;">Connecting...</span>
             </div>
         </div>
-        <button id="adminToggle" onclick="window.handleAdminToggle()" style="font-size:13px;font-weight:600;padding:8px 16px;border-radius:100px;border:none;background:var(--sys-fill);color:var(--sys-label2);cursor:pointer;font-family:inherit;transition:all 0.2s;">管理員</button>
+        <button id="adminToggle" onclick="window.handleAdminToggle()" style="font-size:13px;font-weight:600;padding:8px 16px;border-radius:100px;border:none;background:var(--sys-fill);color:var(--sys-label2);cursor:pointer;font-family:inherit;transition:all 0.2s;">管理员</button>
     </nav>
 
-    <!-- [View 1] 學員首頁 -->
+    <!-- [View 1] 学员首页 -->
     <div id="learnerHome" class="view-section view-active" style="padding-left:20px;padding-right:20px;">
         <div style="margin-bottom:28px;">
-            <div style="font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;">精進學習</div>
-            <div style="font-size:15px;color:var(--sys-label2);">選擇學習類別開始測驗</div>
+            <div style="font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;">精进学习</div>
+            <div style="font-size:15px;color:var(--sys-label2);">选择学习类别开始测验</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px;">
-            <div onclick="window.onSelectCategory('專業')" class="category-card">
+            <div onclick="window.onSelectCategory('专业')" class="category-card">
                 <div class="cat-icon-wrap" style="background:rgba(0,161,155,0.1);">🎓</div>
                 <div style="flex:1;">
-                    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;">專業知識</div>
-                    <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">銀行業務核心知識測驗</div>
+                    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;">专业知识</div>
+                    <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">银行业务核心知识测验</div>
                 </div>
                 <svg width="9" height="16" viewBox="0 0 9 16" fill="none"><path d="M1 1l7 7-7 7" stroke="#C6C6C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <div onclick="window.onSelectCategory('日常')" class="category-card">
                 <div class="cat-icon-wrap" style="background:rgba(0,122,255,0.1);">📋</div>
                 <div style="flex:1;">
-                    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;">日常規範</div>
-                    <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">工作守則與合規要求</div>
+                    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;">日常规范</div>
+                    <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">工作守则与合规要求</div>
                 </div>
                 <svg width="9" height="16" viewBox="0 0 9 16" fill="none"><path d="M1 1l7 7-7 7" stroke="#C6C6C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
         </div>
     </div>
 
-    <!-- [View 2] 考卷單元清單 -->
+    <!-- [View 2] 考卷单元清单 -->
     <div id="unitSelectView" class="view-section" style="padding-left:20px;padding-right:20px;">
         <button onclick="window.switchView('learnerHome')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--brand-green);font-size:17px;font-weight:400;padding:0;margin-bottom:20px;cursor:pointer;font-family:inherit;">
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>返回
         </button>
-        <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;" id="unitViewTitle">考卷目錄</div>
-        <div style="font-size:14px;color:var(--sys-label2);margin-bottom:24px;">點選考卷開始練習</div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;" id="unitViewTitle">考卷目录</div>
+        <div style="font-size:14px;color:var(--sys-label2);margin-bottom:16px;">点选考卷开始练习</div>
+        <!-- 专业筛选按钮列 -->
+        <div id="examCategoryFilter" style="display:flex;gap:8px;padding:0 0 16px 0;overflow-x:auto;">
+            <button onclick="window.setExamFilter('')" id="filterAll" class="exam-filter-btn exam-filter-btn-active">全部</button>
+            <button onclick="window.setExamFilter('对公')" id="filterDG" class="exam-filter-btn">对公</button>
+            <button onclick="window.setExamFilter('存汇')" id="filterCH" class="exam-filter-btn">存汇</button>
+            <button onclick="window.setExamFilter('零售')" id="filterLS" class="exam-filter-btn">零售</button>
+        </div>
         <div id="unitList" class="apple-card" style="margin-bottom:16px;"></div>
         <div id="unitPagination" style="display:none;justify-content:center;align-items:center;gap:24px;padding:16px 0;">
             <button onclick="window.prevUnitPage()" id="btnPrevUnit" class="page-btn">
@@ -250,11 +277,11 @@
         </div>
     </div>
 
-    <!-- [View 3] 進行測驗畫面 -->
+    <!-- [View 3] 进行测验画面 -->
     <div id="learnerQuiz" class="view-section" style="padding-left:20px;padding-right:20px;">
         <div id="quizContentArea">
             <button onclick="window.switchView('learnerHome')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--brand-green);font-size:17px;padding:0;margin-bottom:20px;cursor:pointer;font-family:inherit;">
-                <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>離開
+                <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>离开
             </button>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
                 <span id="prog-text" style="font-size:13px;font-weight:600;color:var(--sys-label2);min-width:44px;font-variant-numeric:tabular-nums;">01/01</span>
@@ -265,7 +292,7 @@
         </div>
         <div id="result-screen" class="hidden result-card" style="margin:8px 0;">
             <div style="font-size:56px;margin-bottom:12px;">🏆</div>
-            <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px;">練習完成</div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px;">练习完成</div>
             <div id="result-score-text" style="font-size:15px;color:var(--sys-label2);margin-bottom:6px;"></div>
             <div id="result-score-points" style="font-size:52px;font-weight:700;color:var(--brand-gold);letter-spacing:-1px;margin-bottom:32px;font-variant-numeric:tabular-nums;"></div>
             <button onclick="window.switchView('unitSelectView')" class="btn-primary">返回列表</button>
@@ -275,62 +302,62 @@
     <!-- [View 4] 管理端看板 -->
     <div id="adminSection" class="view-section" style="padding-left:20px;padding-right:20px;">
         <div class="segment-control" style="margin-bottom:24px;">
-            <button onclick="window.switchAdminTab('management')" id="tabMan" class="segment-btn segment-active">出題管理</button>
-            <button onclick="window.switchAdminTab('analytics')" id="tabAna" class="segment-btn">數據看板</button>
+            <button onclick="window.switchAdminTab('management')" id="tabMan" class="segment-btn segment-active">出题管理</button>
+            <button onclick="window.switchAdminTab('analytics')" id="tabAna" class="segment-btn">数据看板</button>
         </div>
 
         <div id="adminManagement">
             <div class="apple-card" style="padding:20px;margin-bottom:24px;box-shadow:0 2px 16px rgba(0,0,0,0.06);">
                 <div style="display:flex;gap:8px;margin-bottom:20px;">
-                    <button onclick="window.switchAdminCat('專業')" class="admin-cat-btn" style="background:var(--brand-green);color:#fff;">專業</button>
+                    <button onclick="window.switchAdminCat('专业')" class="admin-cat-btn" style="background:var(--brand-green);color:#fff;">专业</button>
                     <button onclick="window.switchAdminCat('日常')" class="admin-cat-btn" style="background:var(--sys-fill);color:var(--sys-label2);">日常</button>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:12px;">
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">專業類別</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">专业类别</div>
                         <select id="unitCategory2" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
-                            <option value="">請選擇類別</option>
-                            <option value="對公">對公</option>
-                            <option value="存匯">存匯</option>
+                            <option value="">请选择类别</option>
+                            <option value="对公">对公</option>
+                            <option value="存汇">存汇</option>
                             <option value="零售">零售</option>
                         </select>
-                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主題</div>
-                        <input type="text" id="unitTheme" class="ios-input" placeholder="例如：外匯基礎知識、定存利率計算" maxlength="20">
-                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">測試日期</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主题</div>
+                        <input type="text" id="unitTheme" class="ios-input" placeholder="例如：外汇基础知识、定存利率计算" maxlength="20">
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">测试日期</div>
                         <input type="date" id="unitDate" class="ios-input" style="color:var(--sys-label);">
-                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">應參與人數</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">应参与人数</div>
                         <input type="number" id="unitExpected" class="ios-input" placeholder="例如：20" min="1" style="color:var(--sys-label);">
                     </div>
                     <div id="dropZone" class="drop-zone">
                         <div style="font-size:28px;margin-bottom:6px;">📂</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);text-transform:uppercase;letter-spacing:0.5px;">點擊導入素材</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--sys-label2);text-transform:uppercase;letter-spacing:0.5px;">点击导入素材</div>
                         <div style="font-size:12px;color:var(--sys-label3);margin-top:4px;">支援 PDF、DOCX、TXT</div>
                         <input type="file" id="fileInput" class="hidden" multiple>
                     </div>
-                    <textarea id="rawText" class="ios-textarea" rows="4" placeholder="解析內容在此顯示..."></textarea>
+                    <textarea id="rawText" class="ios-textarea" rows="4" placeholder="解析内容在此显示..."></textarea>
                     <div id="aiLoader" class="ai-loader hidden">
                         <div id="aiProgressPercent" style="font-size:34px;font-weight:700;color:var(--brand-green);font-variant-numeric:tabular-nums;">0%</div>
                         <div class="ios-progress-track" style="margin-top:8px;">
                             <div id="aiProgressBar" style="height:100%;border-radius:100px;background:var(--brand-green);width:0%;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);"></div>
                         </div>
-                        <div style="font-size:12px;color:var(--brand-green);margin-top:8px;font-weight:500;">AI 正在生成題目...</div>
+                        <div style="font-size:12px;color:var(--brand-green);margin-top:8px;font-weight:500;">AI 正在生成题目...</div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <button onclick="window.openCountModal('ai')" class="btn-tinted" style="border-radius:var(--sys-radius-sm);padding:14px;">✨ AI 智能出題</button>
-                        <button onclick="window.openCountModal('manual')" class="btn-secondary" style="border-radius:var(--sys-radius-sm);padding:14px;font-size:14px;">✍️ 手動錄入</button>
+                        <button onclick="window.openCountModal('ai')" class="btn-tinted" style="border-radius:var(--sys-radius-sm);padding:14px;">✨ AI 智能出题</button>
+                        <button onclick="window.openCountModal('manual')" class="btn-secondary" style="border-radius:var(--sys-radius-sm);padding:14px;font-size:14px;">✍️ 手动录入</button>
                     </div>
-                    <button id="publishBtn" class="btn-primary" style="background:var(--brand-gold);font-size:16px;">發布並同步</button>
+                    <button id="publishBtn" class="btn-primary" style="background:var(--brand-gold);font-size:16px;">发布并同步</button>
                 </div>
             </div>
-            <div class="section-header">已發佈卷宗</div>
+            <div class="section-header">已发布卷宗</div>
             <div id="publishedExamsList" class="apple-card" style="margin-bottom:20px;"></div>
             <div id="editArea" style="display:flex;flex-direction:column;gap:16px;"></div>
         </div>
 
         <div id="adminAnalytics" class="hidden" style="padding-bottom:40px;">
             <div style="background:rgba(0,161,155,0.06);border:1px solid rgba(0,161,155,0.12);border-radius:var(--sys-radius-sm);padding:12px 16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:12px;font-weight:600;color:var(--brand-green);text-transform:uppercase;letter-spacing:0.5px;">全行精進數據</div>
-                <button onclick="window.exportReport()" style="background:var(--brand-green);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📊 匯出報表</button>
+                <div style="font-size:12px;font-weight:600;color:var(--brand-green);text-transform:uppercase;letter-spacing:0.5px;">全行精进数据</div>
+                <button onclick="window.exportReport()" style="background:var(--brand-green);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📊 汇出报表</button>
             </div>
             <div id="analyticsList" style="display:flex;flex-direction:column;gap:12px;"></div>
             <div id="dashboardPagination" style="display:none;justify-content:center;align-items:center;gap:24px;padding:20px 0;border-top:0.5px solid var(--sys-separator);margin-top:8px;">
@@ -346,11 +373,11 @@
         <div class="modal-overlay" style="position:absolute;inset:0;"></div>
         <div style="position:relative;width:100%;max-width:380px;background:#fff;border-radius:28px;padding:36px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
             <div style="font-size:52px;margin-bottom:16px;">👋</div>
-            <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:8px;">歡迎使用學習平台</div>
-            <div style="font-size:14px;color:var(--sys-label2);line-height:1.6;margin-bottom:28px;">請輸入你的姓名或暱稱<br>之後就不需要再填了</div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:8px;">欢迎使用学习平台</div>
+            <div style="font-size:14px;color:var(--sys-label2);line-height:1.6;margin-bottom:28px;">请输入你的姓名或昵称<br>之后就不需要再填了</div>
             <input type="text" id="nicknameInput" class="ios-input" placeholder="例如：小明、王大明" maxlength="10" style="text-align:center;font-size:18px;font-weight:600;margin-bottom:8px;" onkeydown="if(event.key==='Enter')window.saveNickname()">
-            <div id="nicknameError" style="display:none;color:#FF3B30;font-size:12px;margin-bottom:8px;">請輸入名字才能繼續</div>
-            <button onclick="window.saveNickname()" class="btn-primary" style="margin-top:12px;">開始學習</button>
+            <div id="nicknameError" style="display:none;color:#FF3B30;font-size:12px;margin-bottom:8px;">请输入名字才能继续</div>
+            <button onclick="window.saveNickname()" class="btn-primary" style="margin-top:12px;">开始学习</button>
         </div>
     </div>
 
@@ -361,19 +388,19 @@
             <div style="width:36px;height:4px;background:var(--sys-separator);border-radius:2px;margin:0 auto 24px;"></div>
             <div style="text-align:center;margin-bottom:24px;">
                 <div style="font-size:32px;margin-bottom:10px;">🔐</div>
-                <div style="font-size:20px;font-weight:700;letter-spacing:-0.3px;">管理員登入</div>
+                <div style="font-size:20px;font-weight:700;letter-spacing:-0.3px;">管理员登入</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
                 <div>
-                    <div style="font-size:13px;font-weight:600;color:var(--sys-label2);margin-bottom:6px;padding-left:4px;">帳號</div>
-                    <input type="text" id="adminUsernameInput" class="ios-input" placeholder="請輸入帳號" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('adminPasswordInput').focus()">
+                    <div style="font-size:13px;font-weight:600;color:var(--sys-label2);margin-bottom:6px;padding-left:4px;">账号</div>
+                    <input type="text" id="adminUsernameInput" class="ios-input" placeholder="请输入账号" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('adminPasswordInput').focus()">
                 </div>
                 <div>
-                    <div style="font-size:13px;font-weight:600;color:var(--sys-label2);margin-bottom:6px;padding-left:4px;">密碼</div>
-                    <input type="password" id="adminPasswordInput" class="ios-input" placeholder="請輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.submitAdminLogin()">
+                    <div style="font-size:13px;font-weight:600;color:var(--sys-label2);margin-bottom:6px;padding-left:4px;">密码</div>
+                    <input type="password" id="adminPasswordInput" class="ios-input" placeholder="请输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.submitAdminLogin()">
                 </div>
             </div>
-            <div id="adminLoginError" style="display:none;background:#FFF1F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 14px;color:#DC2626;font-size:13px;font-weight:500;margin-bottom:14px;text-align:center;">帳號或密碼錯誤，請再試一次</div>
+            <div id="adminLoginError" style="display:none;background:#FFF1F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 14px;color:#DC2626;font-size:13px;font-weight:500;margin-bottom:14px;text-align:center;">账号或密码错误，请再试一次</div>
             <div style="display:flex;flex-direction:column;gap:10px;">
                 <button onclick="window.submitAdminLogin()" id="adminLoginBtn" class="btn-primary">登入</button>
                 <button onclick="window.cancelAdminLogin()" class="btn-secondary">取消</button>
@@ -388,7 +415,7 @@
             <div style="width:36px;height:4px;background:var(--sys-separator);border-radius:2px;margin:0 auto 24px;"></div>
             <button onclick="window.hideModal('previewModal')" style="position:absolute;top:24px;right:20px;background:var(--sys-fill);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--sys-label2);">✕</button>
             <div id="previewContent" style="display:flex;flex-direction:column;gap:12px;"></div>
-            <button onclick="window.hideModal('previewModal')" class="btn-secondary" style="margin-top:24px;">關閉</button>
+            <button onclick="window.hideModal('previewModal')" class="btn-secondary" style="margin-top:24px;">关闭</button>
         </div>
     </div>
 
@@ -397,13 +424,13 @@
         <div class="modal-overlay" style="position:absolute;inset:0;"></div>
         <div class="modal-sheet" style="position:relative;width:100%;max-width:540px;padding:28px 24px 40px;">
             <div style="width:36px;height:4px;background:var(--sys-separator);border-radius:2px;margin:0 auto 20px;"></div>
-            <div style="font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;letter-spacing:-0.3px;">選擇題數</div>
+            <div style="font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;letter-spacing:-0.3px;">选择题数</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-                <button onclick="window.selectCount(5, this)" class="count-btn">5 題</button>
-                <button onclick="window.selectCount(10, this)" class="count-btn">10 題</button>
+                <button onclick="window.selectCount(5, this)" class="count-btn">5 题</button>
+                <button onclick="window.selectCount(10, this)" class="count-btn">10 题</button>
             </div>
             <div id="startActionContainer" style="display:none;margin-bottom:12px;">
-                <button onclick="window.executeAction()" class="btn-primary">開始執行</button>
+                <button onclick="window.executeAction()" class="btn-primary">开始执行</button>
             </div>
             <button onclick="window.closeModal()" class="btn-secondary" style="color:var(--sys-label2);">取消</button>
         </div>
@@ -417,20 +444,20 @@
             <div style="font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;letter-spacing:-0.3px;">✏️ 改名</div>
             <input type="hidden" id="renameExamId">
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">專業類別</div>
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;">专业类别</div>
                 <select id="renameCat" class="ios-input" style="appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aeaeb2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;">
-                    <option value="">請選擇類別</option>
-                    <option value="對公">對公</option>
-                    <option value="存匯">存匯</option>
+                    <option value="">请选择类别</option>
+                    <option value="对公">对公</option>
+                    <option value="存汇">存汇</option>
                     <option value="零售">零售</option>
                 </select>
-                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主題</div>
-                <input type="text" id="renameTheme" class="ios-input" placeholder="例如：TMU 隨堂知識" maxlength="20">
-                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">測試日期</div>
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">主题</div>
+                <input type="text" id="renameTheme" class="ios-input" placeholder="例如：TMU 随堂知识" maxlength="20">
+                <div style="font-size:13px;font-weight:600;color:var(--sys-label2);padding-left:4px;margin-top:4px;">测试日期</div>
                 <input type="date" id="renameDate" class="ios-input" style="color:var(--sys-label);">
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;">
-                <button onclick="window.submitRename()" class="btn-primary">儲存</button>
+                <button onclick="window.submitRename()" class="btn-primary">保存</button>
                 <button onclick="window.hideModal('renameModal')" class="btn-secondary">取消</button>
             </div>
         </div>
@@ -442,11 +469,11 @@
         <div class="modal-sheet" style="position:relative;width:100%;max-width:540px;padding:28px 24px 40px;text-align:center;">
             <div style="width:36px;height:4px;background:var(--sys-separator);border-radius:2px;margin:0 auto 20px;"></div>
             <div style="font-size:36px;margin-bottom:12px;">🔖</div>
-            <div style="font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-0.3px;">繼續上次進度？</div>
-            <div style="font-size:14px;color:var(--sys-label2);margin-bottom:28px;line-height:1.5;">偵測到未完成的練習</div>
+            <div style="font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-0.3px;">继续上次进度？</div>
+            <div style="font-size:14px;color:var(--sys-label2);margin-bottom:28px;line-height:1.5;">检测到未完成的练习</div>
             <div style="display:flex;flex-direction:column;gap:10px;">
-                <button onclick="window.confirmResume(true)" class="btn-primary">繼續</button>
-                <button onclick="window.confirmResume(false)" class="btn-secondary">重新開始</button>
+                <button onclick="window.confirmResume(true)" class="btn-primary">继续</button>
+                <button onclick="window.confirmResume(false)" class="btn-secondary">重新开始</button>
             </div>
         </div>
     </div>
@@ -457,7 +484,7 @@
         window.showModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'flex'; };
         window.hideModal = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
 
-        // 暱稱管理
+        // 昵称管理
         window.userName = localStorage.getItem('user_name') || '';
 
         window.saveNickname = () => {
@@ -469,10 +496,10 @@
             localStorage.setItem('user_name', name);
             window.hideModal('welcomeModal');
             document.getElementById('navTitle').innerText = name + '，你好';
-            window.showToast('歡迎，' + name + ' 🎉');
+            window.showToast('欢迎，' + name + ' 🎉');
         };
 
-        // 管理員登入邏輯
+        // 管理员登入逻辑
         window.adminPassword = sessionStorage.getItem('adminPw') || '';
         window.adminUsername = sessionStorage.getItem('adminUser') || '';
 
@@ -492,14 +519,14 @@
             const pw = pwInput.value.trim();
 
             if (!user || !pw) {
-                errEl.innerText = '請填寫帳號與密碼';
+                errEl.innerText = '请填写账号与密码';
                 errEl.style.display = 'block';
                 return;
             }
 
-            // 顯示loading狀態
+            // 显示loading状态
             loginBtn.disabled = true;
-            loginBtn.innerText = '驗證中...';
+            loginBtn.innerText = '验证中...';
             errEl.style.display = 'none';
 
             try {
@@ -520,19 +547,19 @@
                     window.isAdminView = true;
                     window.switchView('adminSection');
                     const btn = document.getElementById('adminToggle');
-                    btn.innerText = '登出';
+                    btn.innerText = '退出';
                     btn.style.background = 'rgba(0,161,155,0.12)';
                     btn.style.color = 'var(--brand-green)';
                     window.switchAdminTab('management');
-                    window.showToast('歡迎回來，' + user);
+                    window.showToast('欢迎回来，' + user);
                 } else {
-                    errEl.innerText = '帳號或密碼錯誤，請再試一次';
+                    errEl.innerText = '账号或密码错误，请再试一次';
                     errEl.style.display = 'block';
                     pwInput.value = '';
                     pwInput.focus();
                 }
             } catch(e) {
-                errEl.innerText = '連線異常，請稍後再試';
+                errEl.innerText = '连线异常，请稍后再试';
                 errEl.style.display = 'block';
             } finally {
                 loginBtn.disabled = false;
@@ -554,24 +581,24 @@
                 if (id === viewId) { el.style.display = 'block'; el.classList.add('view-active'); }
                 else { el.style.display = 'none'; el.classList.remove('view-active'); }
             });
-            const titleMap = { learnerHome:'同仁，你好', unitSelectView:'考卷目錄', learnerQuiz:'練習中', adminSection:'管理後台' };
-            document.getElementById('navTitle').innerText = titleMap[viewId] || '智慧學習平台';
+            const titleMap = { learnerHome:'同仁，你好', unitSelectView:'考卷目录', learnerQuiz:'练习中', adminSection:'管理后台' };
+            document.getElementById('navTitle').innerText = titleMap[viewId] || '智慧学习平台';
             window.scrollTo(0, 0);
         };
 
         window.handleAdminToggle = () => {
             const btn = document.getElementById('adminToggle');
             if (window.isAdminView) {
-                // 登出
+                // 退出
                 window.isAdminView = false;
                 window.adminPassword = '';
                 sessionStorage.removeItem('adminPw');
                 window.switchView('learnerHome');
-                btn.innerText = '管理員';
+                btn.innerText = '管理员';
                 btn.style.background = 'var(--sys-fill)';
                 btn.style.color = 'var(--sys-label2)';
             } else {
-                // 顯示登入框
+                // 显示登入框
                 document.getElementById('adminLoginError').style.display = 'none';
                 document.getElementById('adminPasswordInput').value = '';
                 window.showModal('adminLoginModal');
@@ -585,7 +612,7 @@
 
         async function apiRequest(path, options = {}) {
             try {
-                // 管理員專用 API 自動帶上帳號+密碼 header
+                // 管理员专用 API 自动带上账号+密码 header
                 const adminPaths = ['/saveExam', '/deleteExam', '/getRecords', '/aiProxy', '/renameExam'];
                 if (adminPaths.some(p => path.startsWith(p))) {
                     options.headers = {
@@ -598,7 +625,7 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || `Code ${res.status}`);
                 return data;
-            } catch (e) { window.showToast("同步異常，請稍後再試"); return null; }
+            } catch (e) { window.showToast("同步异常，请稍后再试"); return null; }
         }
 
         async function checkConnection() {
@@ -610,27 +637,68 @@
             } catch (e) { dot.style.background = '#FF3B30'; txt.innerText = 'Offline'; }
         }
 
+        // 专业筛选功能
+        window.setExamFilter = (cat) => {
+            window.currentExamFilter = cat;
+            window.unitCurrentPage = 0;
+            // 更新按钮样式
+            const allBtn = document.getElementById('filterAll');
+            const dgBtn = document.getElementById('filterDG');
+            const chBtn = document.getElementById('filterCH');
+            const lsBtn = document.getElementById('filterLS');
+            [allBtn, dgBtn, chBtn, lsBtn].forEach(btn => {
+                if (btn) btn.classList.remove('exam-filter-btn-active');
+            });
+            if (cat === '') { if (allBtn) allBtn.classList.add('exam-filter-btn-active'); }
+            else if (cat === '对公') { if (dgBtn) dgBtn.classList.add('exam-filter-btn-active'); }
+            else if (cat === '存汇') { if (chBtn) chBtn.classList.add('exam-filter-btn-active'); }
+            else if (cat === '零售') { if (lsBtn) lsBtn.classList.add('exam-filter-btn-active'); }
+            // 重新渲染考卷列表
+            window.renderUnitSelect();
+        };
+
         window.onSelectCategory = async (cat) => {
             window.currentCategory = cat; window.unitCurrentPage = 0;
-            document.getElementById('unitViewTitle').innerText = cat === '專業' ? '專業知識' : '日常規範';
+            window.currentExamFilter = '';
+            // 重置筛选按钮
+            ['filterAll','filterDG','filterCH','filterLS'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('exam-filter-btn-active');
+            });
+            const allBtn = document.getElementById('filterAll');
+            if (allBtn) allBtn.classList.add('exam-filter-btn-active');
+
+            document.getElementById('unitViewTitle').innerText = cat === '专业' ? '专业知识' : '日常规范';
+
+            // 根据分类决定是否显示专业筛选
+            const filterBar = document.getElementById('examCategoryFilter');
+            if (filterBar) filterBar.style.display = cat === '专业' ? 'flex' : 'none';
+
             window.switchView('unitSelectView');
-            window.showToast('同步數據中...');
+            window.showToast('同步数据中...');
             const data = await apiRequest("/getExams");
             if (data) { window.allExams = data; window.renderUnitSelect(); }
         };
 
         window.renderUnitSelect = () => {
             const list = document.getElementById('unitList'); if (!list) return;
-            const filtered = (window.allExams || []).filter(e => e.category === window.currentCategory);
+            let exams = (window.allExams || []).filter(e => e.category === window.currentCategory);
+            // 修改2：新的排前面
+            exams = [...exams].reverse();
+            // 修改3：专业筛选
+            let filtered = exams;
+            if (window.currentExamFilter) {
+                filtered = exams.filter(e => e.title && e.title.startsWith(window.currentExamFilter + '｜'));
+            }
             const totalPages = Math.ceil(filtered.length / window.unitPageSize);
             const paged = filtered.slice(window.unitCurrentPage * window.unitPageSize, (window.unitCurrentPage + 1) * window.unitPageSize);
-            if (filtered.length === 0) { list.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:15px;">目前暫無單元</div>`; return; }
+            if (filtered.length === 0) { list.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:15px;">目前暂无单元</div>`; return; }
             list.innerHTML = paged.map((u, i) => `
                 <div onclick="window.startExam('${u.id}')" class="ios-row" style="${i===0?'border-radius:16px 16px 0 0;':''}${i===paged.length-1?'border-radius:0 0 16px 16px;border-bottom:none;':''}">
                     <div style="width:40px;height:40px;background:rgba(0,161,155,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:14px;font-size:18px;">📝</div>
                     <div style="flex:1;">
                         <div style="font-size:16px;font-weight:500;letter-spacing:-0.2px;">${u.title}</div>
-                        <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${u.questions.length} 題</div>
+                        <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${u.questions.length} 题</div>
                     </div>
                     <svg width="9" height="16" viewBox="0 0 9 16" fill="none"><path d="M1 1l7 7-7 7" stroke="#C6C6C8" stroke-width="2" stroke-linecap="round"/></svg>
                 </div>`).join('');
@@ -703,7 +771,7 @@
                             <div style="font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">解析</div>
                             ${item.i}
                         </div>
-                        <button onclick="window.nextQuest()" class="btn-primary">下一題</button>
+                        <button onclick="window.nextQuest()" class="btn-primary">下一题</button>
                     </div>
                 </div>`;
         };
@@ -737,7 +805,7 @@
             const rs = document.getElementById('result-screen'); rs.classList.remove('hidden');
             const total = window.quizData.length;
             const points = Math.round((window.score/total)*100);
-            document.getElementById('result-score-text').innerText = `答對 ${window.score} / ${total} 題`;
+            document.getElementById('result-score-text').innerText = `答对 ${window.score} / ${total} 题`;
             document.getElementById('result-score-points').innerText = `${points}`;
             window.clearProgress(window.currentExamId);
             apiRequest("/saveRecord",{method:'POST',body:JSON.stringify({examId:window.currentExamId,score:window.score,total,wrongIndices:window.wrongIndices,userName:window.userName||'匿名'})});
@@ -757,24 +825,26 @@
             const area = document.getElementById('publishedExamsList');
             area.innerHTML = `<div style="padding:20px;text-align:center;color:var(--sys-label3);font-size:14px;">同步中...</div>`;
             const data = await apiRequest("/getExams") || []; window.allExams = data;
-            const filtered = data.filter(e => e.category===window.currentCategory);
-            if(filtered.length===0){area.innerHTML=`<div style="padding:28px 20px;text-align:center;color:var(--sys-label3);font-size:14px;border:1.5px dashed var(--sys-separator);border-radius:var(--sys-radius-md);">目前無單元</div>`;return;}
+            let filtered = data.filter(e => e.category===window.currentCategory);
+            // 修改2：已发布卷宗新的排前面
+            filtered = [...filtered].reverse();
+            if(filtered.length===0){area.innerHTML=`<div style="padding:28px 20px;text-align:center;color:var(--sys-label3);font-size:14px;border:1.5px dashed var(--sys-separator);border-radius:var(--sys-radius-md);">目前无单元</div>`;return;}
             area.innerHTML = filtered.map((ex,i)=>`
                 <div class="ios-row" style="${i===0?'border-radius:16px 16px 0 0;':''}${i===filtered.length-1?'border-radius:0 0 16px 16px;border-bottom:none;':''}">
                     <div style="flex:1;">
                         <div style="font-size:15px;font-weight:500;">${ex.title}</div>
-                        <div style="font-size:12px;color:var(--sys-label2);margin-top:2px;">${ex.questions.length} 題</div>
+                        <div style="font-size:12px;color:var(--sys-label2);margin-top:2px;">${ex.questions.length} 题</div>
                     </div>
                     <div style="display:flex;gap:8px;">
-                        <button onclick="window.downloadExam('${ex.id}')" style="background:rgba(0,161,155,0.1);border:none;color:var(--brand-green);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">📄 下載</button>
+                        <button onclick="window.downloadExam('${ex.id}')" style="background:rgba(0,161,155,0.1);border:none;color:var(--brand-green);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">📄 下载</button>
                         <button onclick="window.openRenameModal('${ex.id}','${ex.title}')" style="background:rgba(90,90,200,0.1);border:none;color:#5A5AC8;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
-                        <button onclick="window.deleteExam('${ex.id}','${ex.title}')" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
+                        <button onclick="window.deleteExam('${ex.id}','${ex.title}')" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">删除</button>
                     </div>
                 </div>`).join('');
         };
 
         window.deleteExam = async (id,title) => {
-            if(confirm(`確定要移除「${title}」嗎？`)){
+            if(confirm(`确定要移除「${title}」吗？`)){
                 const res = await apiRequest("/deleteExam",{method:'POST',body:JSON.stringify({id})});
                 if(res){window.showToast("已成功移除");window.renderPublishedManagement();}
             }
@@ -794,23 +864,23 @@
             const cat = document.getElementById('renameCat').value;
             const theme = document.getElementById('renameTheme').value.trim();
             const date = document.getElementById('renameDate').value;
-            if(!cat) return window.showToast("請選擇專業類別");
-            if(!theme) return window.showToast("請輸入主題");
-            if(!date) return window.showToast("請選擇測試日期");
+            if(!cat) return window.showToast("请选择专业类别");
+            if(!theme) return window.showToast("请输入主题");
+            if(!date) return window.showToast("请选择测试日期");
             const title = `${cat}｜${theme}｜${date}`;
             const res = await apiRequest("/renameExam", {method:'POST', body:JSON.stringify({id, title})});
-            if(res){ window.hideModal('renameModal'); window.showToast("已更新名稱"); window.renderPublishedManagement(); }
+            if(res){ window.hideModal('renameModal'); window.showToast("已更新名称"); window.renderPublishedManagement(); }
         };
 
         window.renderAnalytics = async () => {
             const area = document.getElementById('analyticsList');
-            area.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:14px;">讀取中...</div>`;
+            area.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:14px;">读取中...</div>`;
             const [exams,records] = await Promise.all([apiRequest("/getExams"),apiRequest("/getRecords")]);
             if(!exams||!records) return;
             const activeExams = exams.filter(ex=>records.some(r=>r.examId===ex.id));
             const totalPages = Math.ceil(activeExams.length/window.dashboardPageSize);
             const paged = activeExams.slice(window.dashboardCurrentPage*window.dashboardPageSize,(window.dashboardCurrentPage+1)*window.dashboardPageSize);
-            if(activeExams.length===0){area.innerHTML=`<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:14px;">尚無數據</div>`;return;}
+            if(activeExams.length===0){area.innerHTML=`<div style="padding:40px 20px;text-align:center;color:var(--sys-label3);font-size:14px;">尚无数据</div>`;return;}
             area.innerHTML = paged.map(ex=>{
                 const exRecs=records.filter(r=>r.examId===ex.id);
                 const count=exRecs.length;
@@ -823,16 +893,16 @@
                 const blindSpots=errorCounts.map((e,i)=>({i,e})).filter(x=>x.e>=threshold&&x.e>0);
                 const blindHtml=blindSpots.length>0?`
                     <div style="margin-top:14px;padding:12px;background:#FFF1F2;border-radius:10px;">
-                        <div style="font-size:11px;font-weight:700;color:#DC2626;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">知識盲區 (≥${threshold} 人答錯)</div>
+                        <div style="font-size:11px;font-weight:700;color:#DC2626;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">知识盲区 (≥${threshold} 人答错)</div>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;">
                             ${blindSpots.map(bs=>`<button onclick="window.previewBlindSpot('${ex.id}',${bs.i})" class="blindspot-tag">Q${bs.i+1} · ${bs.e}人</button>`).join('')}
                         </div>
                     </div>`:'';
-                // 個人成績列表
+                // 个人成绩列表
                 const memberRows = exRecs.map(r => {
                     const pts = Math.round(r.score / r.total * 100);
                     const name = r.userName || '匿名';
-                    const date = new Date(r.t).toLocaleDateString('zh-TW', {month:'numeric',day:'numeric'});
+                    const date = new Date(r.t).toLocaleDateString('zh-CN', {month:'numeric',day:'numeric'});
                     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--sys-separator);">
                         <div style="font-size:14px;font-weight:500;">${name}</div>
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -848,7 +918,7 @@
                             <div>
                                 <span style="font-size:11px;font-weight:600;background:var(--sys-fill);color:var(--sys-label2);padding:2px 8px;border-radius:4px;margin-bottom:6px;display:inline-block;">${ex.category}</span>
                                 <div style="font-size:16px;font-weight:600;letter-spacing:-0.2px;">${ex.title}</div>
-                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人參與${participationRate!==null?` · 參與率 <span style="font-weight:700;color:${participationRate<60?'#FF3B30':participationRate<80?'#F59E0B':'var(--brand-green)'}">${participationRate}%</span>`:`<span style="color:var(--sys-label3);font-size:12px;"> （未設應參與人數）</span>`} · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'};"> ${avg} 分</span></div>
+                                <div style="font-size:13px;color:var(--sys-label2);margin-top:2px;">${count} 人参与${participationRate!==null?` · 参与率 <span style="font-weight:700;color:${participationRate<60?'#FF3B30':participationRate<80?'#F59E0B':'var(--brand-green)'}">${participationRate}%</span>`:`<span style="color:var(--sys-label3);font-size:12px;"> （未设应参与人数）</span>`} · 平均 <span style="font-weight:700;color:${parseFloat(avg)<70?'#FF3B30':'var(--brand-green)'}">${avg} 分</span></div>
                             </div>
                         </div>
                         <div style="margin-bottom:12px;">${memberRows}</div>
@@ -867,11 +937,11 @@
         window.prevDashPage = () => {if(window.dashboardCurrentPage>0){window.dashboardCurrentPage--;window.renderAnalytics();}};
         window.nextDashPage = () => {window.dashboardCurrentPage++;window.renderAnalytics();};
 
-        // ── 下載題目（HTML 列印版）──
+        // ── 下载题目（HTML 列印版）──
         window.downloadExam = (examId) => {
             const exam = window.allExams.find(e => e.id === examId);
             if (!exam) return;
-            const today = new Date().toLocaleDateString('zh-TW');
+            const today = new Date().toLocaleDateString('zh-CN');
             const questionsHtml = exam.questions.map((q, i) => `
                 <div style="margin-bottom:28px;page-break-inside:avoid;">
                     <div style="font-weight:700;font-size:15px;margin-bottom:10px;color:#000;">
@@ -879,7 +949,7 @@
                     </div>
                     <div style="padding-left:16px;">
                         ${q.o.map((opt, oi) => {
-                            // 若選項文字已含字母前綴（如 "A. xxx"），不重複加
+                            // 若选项文字已含字母前缀（如 "A. xxx"），不重复加
                             const hasPrefix = /^[A-D][.、．]\s/.test(opt);
                             const label = hasPrefix ? '' : `${['A','B','C','D'][oi]}. `;
                             return `<div style="margin-bottom:6px;">
@@ -895,7 +965,7 @@
                 </div>`).join('<hr style="border:none;border-top:1px dashed #ddd;margin:20px 0;">');
 
             const html = `<!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
 <title>${exam.title}</title>
@@ -908,7 +978,7 @@
 </head>
 <body>
   <h1>${exam.title}</h1>
-  <div class="meta">類別：${exam.category} ｜ 題數：${exam.questions.length} 題 ｜ 匯出日期：${today}</div>
+  <div class="meta">类别：${exam.category} ｜ 题数：${exam.questions.length} 题 ｜ 汇出日期：${today}</div>
   <button onclick="window.print()" style="margin-bottom:24px;padding:10px 20px;background:#00A19B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🖨️ 列印 / 另存 PDF</button>
   ${questionsHtml}
 </body>
@@ -917,21 +987,21 @@
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `${exam.title}_題目.html`;
+            a.download = `${exam.title}_题目.html`;
             a.click();
-            window.showToast('題目已下載，用瀏覽器開啟可列印');
+            window.showToast('题目已下载，用浏览器开启可列印');
         };
 
-        // ── 匯出管理報表（CSV）──
+        // ── 汇出管理报表（CSV）──
         window.exportReport = async () => {
-            window.showToast('報表產製中...');
+            window.showToast('报表产制中...');
             const [exams, records] = await Promise.all([apiRequest("/getExams"), apiRequest("/getRecords")]);
             if (!exams || !records) return;
 
-            const today = new Date().toLocaleDateString('zh-TW');
-            let csv = '﻿'; // BOM，讓 Excel 正確顯示中文
-            csv += `玉山銀行精進學習管理報表,匯出日期：${today}\n\n`;
-            csv += `卷宗名稱,類別,參與人數,平均分數,最高分,最低分\n`;
+            const today = new Date().toLocaleDateString('zh-CN');
+            let csv = '﻿'; // BOM，让 Excel 正确显示中文
+            csv += `玉山银行精进学习管理报表,汇出日期：${today}\n\n`;
+            csv += `卷宗名称,类别,参与人数,平均分数,最高分,最低分\n`;
 
             exams.forEach(ex => {
                 const exRecs = records.filter(r => r.examId === ex.id);
@@ -943,14 +1013,14 @@
                 csv += `"${ex.title}","${ex.category}",${exRecs.length},${avg}%,${max}%,${min}%\n`;
             });
 
-            csv += `\n同仁答題明細\n`;
-            csv += `姓名,卷宗名稱,類別,分數,答題日期\n`;
+            csv += `\n同仁答题明细\n`;
+            csv += `姓名,卷宗名称,类别,分数,答题日期\n`;
 
             records.forEach(r => {
                 const ex = exams.find(e => e.id === r.examId);
                 if (!ex) return;
                 const pts = Math.round(r.score / r.total * 100);
-                const date = new Date(r.t).toLocaleDateString('zh-TW');
+                const date = new Date(r.t).toLocaleDateString('zh-CN');
                 const name = r.userName || '匿名';
                 csv += `"${name}","${ex.title}","${ex.category}",${pts}%,"${date}"\n`;
             });
@@ -958,9 +1028,9 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `玉山精進學習報表_${today.replace(/\//g,'-')}.csv`;
+            a.download = `玉山精进学习报表_${today.replace(/\//g,'-')}.csv`;
             a.click();
-            window.showToast('報表已下載，可用 Excel 開啟');
+            window.showToast('报表已下载，可用 Excel 开启');
         };
 
         window.previewBlindSpot = (examId,qIdx) => {
@@ -1000,14 +1070,14 @@
 
         window.executeAiGen = async (count) => {
             if(_aiGenerating) return;
-            const text=document.getElementById('rawText')?.value; if(!text) return window.showToast("請先提供素材內容");
+            const text=document.getElementById('rawText')?.value; if(!text) return window.showToast("请先提供素材内容");
             _aiGenerating = true;
             const btn=document.querySelector('#startActionContainer .btn-primary'); if(btn) btn.disabled=true;
             const loader=document.getElementById('aiLoader'); loader.classList.remove('hidden');
             const mcCount=Math.ceil(count*0.3); const tfCount=count-mcCount;
             window.updateAiProgress(10);
             try {
-                const prompt=`你是一位資深銀行顧問。請根據素材產出共 ${count} 題。要求：必須包含 ${mcCount} 題「情境選擇題」以及 ${tfCount} 題「是非題」。是非題選項固定 ["正確", "錯誤"]。每題附深度解析。格式：純 JSON Array [ {"q":"題目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。內容：\n${text}`;
+                const prompt=`你是一位资深银行顾问。请根据素材产出共 ${count} 题。要求：必须包含 ${mcCount} 题「情境选择题」以及 ${tfCount} 题「是非题」。是非题选项固定 ["正确", "错误"]。每题附深度解析。格式：纯 JSON Array [ {"q":"题目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。内容：\n${text}`;
                 window.updateAiProgress(40);
                 const httpRes = await fetch(API_BASE + "/aiProxy", {
                     method: 'POST',
@@ -1019,22 +1089,22 @@
                     body: JSON.stringify({prompt})
                 });
                 const res = await httpRes.json();
-                if (!httpRes.ok) throw new Error(res.error || `伺服器錯誤 ${httpRes.status}`);
+                if (!httpRes.ok) throw new Error(res.error || `服务器错误 ${httpRes.status}`);
                 window.updateAiProgress(85);
                 const content=res.choices?.[0]?.message?.content||"";
                 const s=content.indexOf('['); const e=content.lastIndexOf(']')+1;
-                if(s===-1||e<=0) throw new Error("AI 回傳格式異常，請重試");
+                if(s===-1||e<=0) throw new Error("AI 回传格式异常，请重试");
                 window.tempEditData=window.tempEditData.concat(JSON.parse(content.substring(s,e)));
                 window.renderEditCards();
                 window.updateAiProgress(100);
-                setTimeout(()=>{window.showToast('AI 出題完成');loader.classList.add('hidden');},600);
-            } catch(e){window.showToast("AI 出題失敗：" + e.message);loader.classList.add('hidden');}
+                setTimeout(()=>{window.showToast('AI 出题完成');loader.classList.add('hidden');},600);
+            } catch(e){window.showToast("AI 出题失败：" + e.message);loader.classList.add('hidden');}
             finally { _aiGenerating=false; if(btn) btn.disabled=false; }
         };
 
         window.executeManualAdd = (count) => {
-            for(let i=0;i<count;i++) window.tempEditData.push({q:"請輸入題目",o:["選項 A","選項 B","選項 C","選項 D"],a:0,i:"請輸入解析"});
-            window.renderEditCards(); window.showToast(`已新增 ${count} 個題目模板`);
+            for(let i=0;i<count;i++) window.tempEditData.push({q:"请输入题目",o:["选项 A","选项 B","选项 C","选项 D"],a:0,i:"请输入解析"});
+            window.renderEditCards(); window.showToast(`已新增 ${count} 个题目模板`);
         };
 
         window.renderEditCards = () => {
@@ -1043,10 +1113,10 @@
                 <div class="apple-card" style="padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                         <div style="width:28px;height:28px;background:var(--brand-green);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">${i+1}</div>
-                        <button onclick="window.tempEditData.splice(${i},1);window.renderEditCards();" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">刪除</button>
+                        <button onclick="window.tempEditData.splice(${i},1);window.renderEditCards();" style="background:rgba(255,59,48,0.1);border:none;color:#FF3B30;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">删除</button>
                     </div>
-                    <input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="ios-input" style="margin-bottom:12px;font-weight:500;" placeholder="題目內容">
-                    <div style="font-size:12px;font-weight:600;color:var(--brand-green);padding-left:2px;margin-bottom:6px;">◎ 點選左側圓點標記正確答案</div>
+                    <input type="text" value="${d.q}" oninput="window.tempEditData[${i}].q=this.value" class="ios-input" style="margin-bottom:12px;font-weight:500;" placeholder="题目内容">
+                    <div style="font-size:12px;font-weight:600;color:var(--brand-green);padding-left:2px;margin-bottom:6px;">◎ 点选左侧圆点标记正确答案</div>
                     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
                         ${d.o.map((o,oi)=>`
                             <div style="display:flex;align-items:center;gap:10px;background:var(--sys-fill);padding:10px 14px;border-radius:10px;border:1.5px solid ${d.a==oi?'var(--brand-green)':'transparent'};">
@@ -1054,7 +1124,7 @@
                                 <input type="text" value="${o}" oninput="window.tempEditData[${i}].o[${oi}]=this.value" style="background:transparent;border:none;outline:none;font-size:14px;width:100%;font-family:inherit;color:var(--sys-label);">
                             </div>`).join('')}
                     </div>
-                    <textarea oninput="window.tempEditData[${i}].i=this.value" class="ios-textarea" rows="3" style="background:#FFFBEB;border:1px solid #FDE68A;" placeholder="解析說明...">${d.i}</textarea>
+                    <textarea oninput="window.tempEditData[${i}].i=this.value" class="ios-textarea" rows="3" style="background:#FFFBEB;border:1px solid #FDE68A;" placeholder="解析说明...">${d.i}</textarea>
                 </div>`).join('');
         };
 
@@ -1071,7 +1141,7 @@
 
         document.addEventListener('DOMContentLoaded',()=>{
             checkConnection();
-            // 檢查是否已有暱稱
+            // 检查是否已有昵称
             if (!window.userName) {
                 window.showModal('welcomeModal');
                 setTimeout(() => document.getElementById('nicknameInput').focus(), 300);
@@ -1089,23 +1159,23 @@
                         else if(file.name.endsWith('.docx')){const ab=await file.arrayBuffer();const res=await mammoth.extractRawText({arrayBuffer:ab});document.getElementById('rawText').value+=res.value;}
                         else if(file.type==='application/pdf'){const ab=await file.arrayBuffer();const pdf=await pdfjsLib.getDocument(new Uint8Array(ab)).promise;let t='';for(let p=1;p<=pdf.numPages;p++){const pg=await pdf.getPage(p);const ct=await pg.getTextContent();t+=ct.items.map(s=>s.str).join(' ')+'\n';}document.getElementById('rawText').value+=t;}
                     }
-                    window.showToast('素材載入成功');
+                    window.showToast('素材载入成功');
                 };
             }
             publishBtn.onclick=async()=>{
                 const cat2=document.getElementById('unitCategory2')?.value;
                 const theme=document.getElementById('unitTheme')?.value.trim();
                 const date=document.getElementById('unitDate')?.value;
-                if(!cat2) return window.showToast("請選擇專業類別");
-                if(!theme) return window.showToast("請輸入主題");
-                if(!date) return window.showToast("請選擇測試日期");
+                if(!cat2) return window.showToast("请选择专业类别");
+                if(!theme) return window.showToast("请输入主题");
+                if(!date) return window.showToast("请选择测试日期");
                 const title=`${cat2}｜${theme}｜${date}`;
-                if(window.tempEditData.length===0) return window.showToast("尚無題目可上傳");
+                if(window.tempEditData.length===0) return window.showToast("尚无题目可上传");
                 publishBtn.disabled=true; publishBtn.innerText='同步中...';
                 const expectedCount = parseInt(document.getElementById('unitExpected')?.value) || 0;
                 const res=await apiRequest("/saveExam",{method:'POST',body:JSON.stringify({category:window.currentCategory,title,expectedCount,questions:window.tempEditData})});
-                if(res){window.showToast("發布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitCategory2').value='';document.getElementById('unitTheme').value='';document.getElementById('unitDate').value='';document.getElementById('unitExpected').value='';window.renderEditCards();window.renderPublishedManagement();}
-                publishBtn.disabled=false; publishBtn.innerText='發布並同步';
+                if(res){window.showToast("发布成功！同仁端已同步");window.tempEditData=[];document.getElementById('unitCategory2').value='';document.getElementById('unitTheme').value='';document.getElementById('unitDate').value='';document.getElementById('unitExpected').value='';window.renderEditCards();window.renderPublishedManagement();}
+                publishBtn.disabled=false; publishBtn.innerText='发布并同步';
             };
         });
     </script>
