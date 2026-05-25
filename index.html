@@ -940,7 +940,15 @@
             try {
                 const prompt=`你是一位资深银行顾问。请根据素材产出共 ${count} 题。要求：必须包含 ${mcCount} 题「情境选择题」以及 ${tfCount} 题「是非题」。是非题选项固定 ["正确", "错误"]。每题附深度解析。格式：纯 JSON Array [ {"q":"题目","o":["A","B","C","D"],"a":0,"i":"解析"} ]。内容：\n${text}`;
                 window.updateAiProgress(40);
-                const httpRes = await fetch(API_BASE + "/aiProxy", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': window.adminUsername || '', 'X-Admin-Password': window.adminPassword || '' }, body: JSON.stringify({prompt}) });
+                const httpRes = await fetch(API_BASE + "/aiProxy", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Username': window.adminUsername || '',
+                        'X-Admin-Password': window.adminPassword || ''
+                    },
+                    body: JSON.stringify({ prompt, count, materialLength: text.length })
+                });
                 const res = await httpRes.json();
                 if (!httpRes.ok) throw new Error(res.error || `服务器错误 ${httpRes.status}`);
                 window.updateAiProgress(85);
